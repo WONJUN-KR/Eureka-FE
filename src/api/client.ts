@@ -51,7 +51,12 @@ client.interceptors.response.use(
       _retry?: boolean;
     };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // BE 는 인증 실패를 401 이 아니라 빈 body 의 403 으로 돌려줌(Spring Security 기본) → 둘 다 인증 실패로 처리
+    // 본문이 있는 403 은 권한 문제(남의 글 수정 등)라 그대로 넘김
+    const status = error.response?.status;
+    const isAuthFailure = status === 401 || (status === 403 && !error.response?.data);
+
+    if (isAuthFailure && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
