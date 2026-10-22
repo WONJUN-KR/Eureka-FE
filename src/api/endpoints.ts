@@ -17,12 +17,13 @@ export const ENDPOINTS = {
     DELETE: (id: number) => `/api/posts/${id}`,
   },
   IMAGES: {
-    UPLOAD: "/api/images",
+    UPLOAD: (postId: number) => `/api/posts/${postId}/images`,
+    LIST: (postId: number) => `/api/posts/${postId}/images`,
     DELETE: (id: number) => `/api/images/${id}`,
   },
   LIKES: {
-    TOGGLE: (postId: number) => `/api/posts/${postId}/likes`,
-    STATUS: (postId: number) => `/api/posts/${postId}/likes`,
+    TOGGLE: (postId: number) => `/api/posts/${postId}/like`,
+    STATUS: (postId: number) => `/api/posts/${postId}/like`,
   },
   REGIONS: {
     LIST: "/api/regions",
