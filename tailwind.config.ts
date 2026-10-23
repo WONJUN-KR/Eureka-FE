@@ -44,7 +44,7 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        footprint: {
+        eureka: {
           50: "#f0fdf4",
           100: "#dcfce7",
           200: "#bbf7d0",

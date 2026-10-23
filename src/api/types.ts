@@ -1,4 +1,4 @@
-// FootPrint BE 응답 형식: { status: number, message: string, data: T }
+// 유레카 BE 응답 형식: { status: number, message: string, data: T }
 export interface ApiResponse<T> {
   status: number;
   message: string;
