@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useMe } from "@/api/queries";
 import { get } from "@/api/request";
 import type { Page, PostResponse } from "@/api/types";
-import PostCard from "@/components/PostCard";
+import PostCard, { PostCardSkeleton } from "@/components/PostCard";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 // 원본 myPage.jsp = 내가 쓴 글 목록(boardList 와 같은 3칸). 위에 내 정보와 로그아웃을 더함
@@ -54,7 +54,6 @@ export default function MyPage() {
       </section>
 
       <h2 className="mb-6 text-xl font-bold">내가 남긴 발자취</h2>
-      {mine.isLoading && <p className="py-12 text-center text-neutral-500">불러오는 중...</p>}
       {mine.isError && (
         <p className="py-12 text-center text-neutral-500">내 글 목록은 준비 중이에요.</p>
       )}
@@ -62,6 +61,7 @@ export default function MyPage() {
         <p className="py-12 text-center text-neutral-500">아직 남긴 발자취가 없어요.</p>
       )}
       <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        {mine.isLoading && Array.from({ length: 6 }, (_, i) => <PostCardSkeleton key={i} />)}
         {mine.data?.content.map((p) => (
           <PostCard key={p.id} post={p} />
         ))}

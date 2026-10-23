@@ -1,13 +1,13 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
 import { useCategories, usePosts } from "@/api/queries";
 import type { CategoryResponse } from "@/api/types";
-import { cn } from "@/lib/utils";
+import { cn, isOptimizable } from "@/lib/utils";
 
 // 원본 bestpick.jsp: '이 달의 Best 픽' - 카테고리(여행가자·맛집가자·놀러가자)마다 1등 글을 슬라이드로, 가운데 것만 선명하게
 const FALLBACK = ["seoul.jpg", "busan.jpg", "jeju.jpg"];
@@ -37,9 +37,16 @@ function PickCard({
       <Link
         href={best ? `/posts/${best.id}` : `/posts?categoryId=${category.id}`}
         tabIndex={active ? 0 : -1}
-        className="block w-full max-w-[500px]"
+        className="relative block aspect-[5/3] w-full max-w-[500px] overflow-hidden rounded"
       >
-        <img src={img} alt="" className="aspect-[5/3] w-full max-w-[500px] rounded object-cover" />
+        <Image
+          src={img}
+          alt={best ? best.title : `${category.name} 글 목록`}
+          fill
+          unoptimized={!isOptimizable(img)}
+          sizes="(min-width: 768px) 360px, 100vw"
+          className="object-cover"
+        />
       </Link>
       <p className="mt-6 text-center font-semibold">{best ? best.title : "아직 글이 없어요"}</p>
       {best && (

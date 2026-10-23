@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -62,10 +62,12 @@ function LoginForm() {
       </Field>
       <ErrorText message={mutation.isError ? getErrorMessage(mutation.error) : null} />
       <SubmitButton pending={mutation.isPending}>로 그 인</SubmitButton>
-      <img
+      <Image
         src="/images/headerImages/blackLogo.png"
         alt=""
-        className="mx-auto mt-6 w-40 opacity-80"
+        width={160}
+        height={80}
+        className="mx-auto mt-6 h-auto w-40 opacity-80"
       />
     </form>
   );
@@ -206,7 +208,8 @@ function LoginAndJoin() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    // 대체 화면을 탭+폼 높이로 잡아 탭이 들어올 때 푸터가 밀리지 않게 (CLS)
+    <Suspense fallback={<div className="mx-auto min-h-[760px] max-w-3xl px-4 pt-24 md:pt-32" />}>
       <LoginAndJoin />
     </Suspense>
   );

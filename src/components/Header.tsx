@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -61,10 +61,14 @@ export default function Header() {
     >
       <header className="mx-auto flex h-16 max-w-6xl items-center px-4 md:h-24">
         <Link href="/" className="w-28 shrink-0 md:w-40" aria-label="FootPrint 홈">
-          <img
+          {/* 로고 원본 1024x512 → 화면 최대 160px 폭 */}
+          <Image
             src={solid ? "/images/headerImages/blackLogo.png" : "/images/headerImages/logo.png"}
             alt="FootPrint"
-            className="w-full"
+            width={160}
+            height={80}
+            priority
+            className="h-auto w-full"
           />
         </Link>
         <nav className="hidden flex-1 md:block" aria-label="주 메뉴">
@@ -91,7 +95,9 @@ export default function Header() {
             href={loggedIn ? "/mypage" : "/login"}
             aria-label={loggedIn ? "마이페이지" : "로그인"}
           >
-            <img
+            <Image
+              width={28}
+              height={28}
               src={
                 solid
                   ? "/images/headerImages/mypage_icon_black.png"
@@ -102,7 +108,9 @@ export default function Header() {
             />
           </Link>
           <Link href="/posts" aria-label="전체 발자취 보기">
-            <img
+            <Image
+              width={28}
+              height={28}
               src={
                 solid
                   ? "/images/headerImages/search_icon_black.png"

@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 import { useCategories, useCities, usePosts, useRegions, useSubCategories } from "@/api/queries";
 import { pageInfo } from "@/api/types";
-import PostCard from "@/components/PostCard";
+import PostCard, { PostCardSkeleton } from "@/components/PostCard";
 import { inputClass } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
@@ -116,7 +116,6 @@ function BoardList() {
       </div>
 
       <section aria-live="polite">
-        {isLoading && <p className="py-16 text-center text-neutral-500">불러오는 중...</p>}
         {isError && (
           <p className="py-16 text-center text-destructive">게시글을 불러오지 못했어요.</p>
         )}
@@ -124,6 +123,7 @@ function BoardList() {
           <p className="py-16 text-center text-neutral-500">아직 이 조건의 발자취가 없어요.</p>
         )}
         <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading && Array.from({ length: 9 }, (_, i) => <PostCardSkeleton key={i} />)}
           {data?.content.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}
@@ -170,10 +170,30 @@ function BoardList() {
   );
 }
 
+// 서버 HTML 에선 Suspense 대체 화면이 먼저 그려짐 - 빈 화면이면 목록이 들어올 때 페이지 전체(푸터까지)가 밀려서
+// 제목·필터·카드 자리를 같은 크기로 미리 잡아둠 (CLS)
+function BoardListFallback() {
+  return (
+    <div className="mx-auto max-w-6xl px-4 pb-8 pt-24 md:pt-32" aria-busy="true">
+      <h1 className="mb-6 text-center text-3xl font-bold">발자취</h1>
+      <div className="mx-auto mb-10 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="h-[38px] rounded-md border border-input bg-neutral-50" />
+        ))}
+      </div>
+      <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 9 }, (_, i) => (
+          <PostCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // useSearchParams 는 Suspense 안에서 (정적 빌드 요구사항)
 export default function PostsPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<BoardListFallback />}>
       <BoardList />
     </Suspense>
   );

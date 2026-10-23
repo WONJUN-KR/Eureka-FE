@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 
 // 원본 pageMerit.jsp: 서비스 장점 3개 (문구 그대로)
 const MERITS = [
@@ -32,9 +32,11 @@ export default function PageMerit() {
       <ul className="grid gap-12 text-center md:grid-cols-3">
         {MERITS.map((m) => (
           <li key={m.img} className="flex flex-col items-center">
-            <img
+            <Image
               src={`/images/contentsImages/${m.img}`}
               alt=""
+              width={192}
+              height={192}
               className="mb-8 w-40 opacity-90 md:w-48"
             />
             <h2 className="mb-6 text-xl font-bold">{m.title}</h2>

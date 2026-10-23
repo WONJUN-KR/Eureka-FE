@@ -1,7 +1,7 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { ChevronLeft, ChevronRight, Eye, Trash2, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useDeletePost, useToggleLike } from "@/api/mutations";
 import { useLikeStatus, useMe, usePost, usePostImages } from "@/api/queries";
 import { getErrorMessage } from "@/api/request";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, formatDate, isOptimizable } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 // 원본 read.jsp 글 읽기 창: 제목 + 밑줄 · 사진 슬라이더 · 작성자 닉네임과 '추천' 버튼 · 본문 · 아래 한 줄 요약
@@ -32,7 +32,13 @@ export default function PostDetailPage() {
   const deletePost = useDeletePost();
 
   const wrap = "mx-auto max-w-3xl px-4 pb-8 pt-24 md:pt-32";
-  if (isLoading) return <p className={cn(wrap, "text-center text-neutral-500")}>불러오는 중...</p>;
+  // 받아오는 동안 읽기 창과 같은 크기의 빈 틀 - 내용이 들어와도 푸터가 밀리지 않게(CLS)
+  if (isLoading)
+    return (
+      <div className={wrap} aria-busy="true">
+        <div className="min-h-[640px] animate-pulse rounded-xl border-2 border-neutral-200 bg-neutral-50 motion-reduce:animate-none" />
+      </div>
+    );
   if (isError || !post)
     return (
       <p className={cn(wrap, "text-center text-destructive")}>
@@ -62,11 +68,15 @@ export default function PostDetailPage() {
         <div className="mx-auto mb-6 max-w-xl border-b-2 border-black" />
 
         {count > 0 && (
-          <div className="relative mx-auto mb-6 max-w-xl overflow-hidden rounded">
-            <img
+          <div className="relative mx-auto mb-6 aspect-[4/3] max-w-xl overflow-hidden rounded">
+            <Image
               src={images![slide % count].url}
-              alt=""
-              className="aspect-[4/3] w-full object-cover"
+              alt={`${post.title} 사진 ${(slide % count) + 1}`}
+              fill
+              priority
+              unoptimized={!isOptimizable(images![slide % count].url)}
+              sizes="(min-width: 640px) 576px, 100vw"
+              className="object-cover"
             />
             {count > 1 && (
               <>
