@@ -11,15 +11,27 @@ const SLIDES = ["banner1.jpg", "banner2.jpg", "banner3.jpg"];
 
 export default function Banner() {
   const [current, setCurrent] = useState(0);
+  // 첫 화면엔 첫 장만 받고, 다음 장은 바뀌기 전에 미리 붙임 (3장을 한꺼번에 받으면 첫 화면이 1MB 넘게 무거워짐)
+  const [mounted, setMounted] = useState(1);
 
   useEffect(() => {
-    const t = setInterval(() => setCurrent((c) => (c + 1) % SLIDES.length), 3000);
-    return () => clearInterval(t);
+    let next = 0;
+    const t = setInterval(() => {
+      next = (next + 1) % SLIDES.length;
+      setCurrent(next);
+      // 지금 장 다음 것까지 붙여두면 바뀔 때 이미 받아져 있음
+      setMounted((m) => Math.min(SLIDES.length, Math.max(m, next + 2)));
+    }, 3000);
+    const warm = setTimeout(() => setMounted((m) => Math.max(m, 2)), 1500);
+    return () => {
+      clearInterval(t);
+      clearTimeout(warm);
+    };
   }, []);
 
   return (
     <section className="relative mx-auto h-[70vh] max-h-[800px] min-h-[420px] w-full max-w-6xl overflow-hidden">
-      {SLIDES.map((src, i) => (
+      {SLIDES.slice(0, mounted).map((src, i) => (
         <Image
           key={src}
           src={`/images/bannerImages/${src}`}
@@ -27,6 +39,7 @@ export default function Banner() {
           fill
           // 첫 장이 첫 화면 가장 큰 요소(LCP) - 미리 받기, 나머지는 바뀔 때 보이니 기본(lazy)
           priority={i === 0}
+          quality={70}
           sizes="(min-width: 1152px) 1152px, 100vw"
           className={cn(
             "object-cover transition-opacity duration-1000 motion-reduce:transition-none",

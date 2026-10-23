@@ -1,3 +1,4 @@
+import { Facebook, Instagram, Twitter } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,9 +10,9 @@ const MENU = [
   { href: "/mypage", label: "마이페이지" },
 ];
 const SNS = [
-  { href: "https://www.facebook.com/", src: "facebook.png", alt: "페이스북" },
-  { href: "https://www.instagram.com/", src: "instagram.png", alt: "인스타그램" },
-  { href: "https://twitter.com/", src: "twitter.png", alt: "트위터" },
+  { href: "https://www.facebook.com/", Icon: Facebook, alt: "페이스북" },
+  { href: "https://www.instagram.com/", Icon: Instagram, alt: "인스타그램" },
+  { href: "https://twitter.com/", Icon: Twitter, alt: "트위터" },
 ];
 
 export default function Footer() {
@@ -39,14 +40,15 @@ export default function Footer() {
           />
           <div className="flex gap-4">
             {SNS.map((s) => (
-              <a key={s.src} href={s.href} target="_blank" rel="noreferrer" aria-label={s.alt}>
-                <Image
-                  src={`/images/footerImages/${s.src}`}
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="size-7"
-                />
+              <a
+                key={s.alt}
+                href={s.href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={s.alt}
+                className="text-neutral-600 hover:text-neutral-900"
+              >
+                <s.Icon aria-hidden strokeWidth={1.75} className="size-7" />
               </a>
             ))}
           </div>
