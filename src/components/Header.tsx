@@ -1,5 +1,6 @@
 "use client";
 
+import { Search, UserRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -95,29 +96,17 @@ export default function Header() {
             href={loggedIn ? "/mypage" : "/login"}
             aria-label={loggedIn ? "마이페이지" : "로그인"}
           >
-            <Image
-              width={28}
-              height={28}
-              src={
-                solid
-                  ? "/images/headerImages/mypage_icon_black.png"
-                  : "/images/headerImages/mypage_icon.png"
-              }
-              alt=""
-              className="size-7"
+            <UserRound
+              aria-hidden
+              strokeWidth={1.75}
+              className={cn("size-7", solid ? "text-neutral-700" : "text-white drop-shadow")}
             />
           </Link>
           <Link href="/posts" aria-label="전체 발자취 보기">
-            <Image
-              width={28}
-              height={28}
-              src={
-                solid
-                  ? "/images/headerImages/search_icon_black.png"
-                  : "/images/headerImages/search_icon.png"
-              }
-              alt=""
-              className="size-7"
+            <Search
+              aria-hidden
+              strokeWidth={1.75}
+              className={cn("size-7", solid ? "text-neutral-700" : "text-white drop-shadow")}
             />
           </Link>
         </div>

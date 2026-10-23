@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // 가장 큰 화면(배너 1152px × 2배)에 2048 이면 충분 - 기본값의 3840 은 고해상도 원본을 거의 그대로 보내서 뺌
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    qualities: [70, 75],
     remotePatterns: [
       {
         protocol: "http",
