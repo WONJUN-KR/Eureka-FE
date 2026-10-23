@@ -1,6 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// 백엔드가 서빙하는 업로드 사진(/uploads/...)은 next/image 최적화(같은 서버 재요청) 대신 원본 그대로
+// 정적 사진(/images/...)만 WebP 변환·리사이즈
+export function isOptimizable(src: string) {
+  return !src.startsWith("/uploads/");
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

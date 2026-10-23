@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
 
 // 원본 footer.jsp: 메뉴 줄 · 구분선 + 저작권 · 로고와 SNS 아이콘
@@ -30,11 +30,23 @@ export default function Footer() {
         <hr className="mx-auto max-w-4xl border-neutral-800" />
         <p className="py-6 text-center text-sm text-neutral-500">&copy; FootPrint</p>
         <div className="flex items-center justify-between pb-8">
-          <img src="/images/footerImages/logo.png" alt="FootPrint" className="w-28 md:w-36" />
+          <Image
+            src="/images/footerImages/logo.png"
+            alt="FootPrint"
+            width={144}
+            height={72}
+            className="h-auto w-28 md:w-36"
+          />
           <div className="flex gap-4">
             {SNS.map((s) => (
               <a key={s.src} href={s.href} target="_blank" rel="noreferrer" aria-label={s.alt}>
-                <img src={`/images/footerImages/${s.src}`} alt="" className="size-7" />
+                <Image
+                  src={`/images/footerImages/${s.src}`}
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="size-7"
+                />
               </a>
             ))}
           </div>

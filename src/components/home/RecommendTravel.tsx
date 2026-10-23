@@ -1,7 +1,7 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useQueries } from "@tanstack/react-query";
+import Image from "next/image";
 import Link from "next/link";
 
 import { ENDPOINTS } from "@/api/endpoints";
@@ -52,10 +52,17 @@ export default function RecommendTravel() {
               href={id ? `/posts?cityId=${id}` : "/posts"}
               className={cn("group relative overflow-hidden rounded", c.span)}
             >
-              <img
+              <Image
                 src={`/images/recommendImages/${c.img}`}
                 alt=""
-                className="size-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none"
+                fill
+                // 휴대폰 2칸 · 넓은 화면 4칸 (서울은 2칸 폭)
+                sizes={
+                  c.name === "서울"
+                    ? "(min-width: 768px) 560px, 100vw"
+                    : "(min-width: 768px) 280px, 50vw"
+                }
+                className="object-cover opacity-90 transition-transform duration-500 group-hover:scale-110 motion-reduce:transition-none"
               />
               <span className="absolute inset-0 flex items-center justify-center text-2xl font-medium text-white [text-shadow:2px_2px_2px_gray] md:text-[25px]">
                 {c.name}

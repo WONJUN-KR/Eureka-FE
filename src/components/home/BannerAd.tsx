@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -36,9 +36,12 @@ export default function BannerAd() {
               className="w-full shrink-0"
               tabIndex={i === now ? 0 : -1}
             >
-              <img
+              <Image
                 src={`/images/bannerAdImages/${a.src}`}
-                alt=""
+                alt={`제휴 광고 ${i + 1}`}
+                width={1100}
+                height={300}
+                sizes="(min-width: 1152px) 1120px, 100vw"
                 className="aspect-[11/3] w-full object-cover opacity-90 hover:opacity-100"
               />
             </a>
@@ -53,7 +56,10 @@ export default function BannerAd() {
             aria-label={`광고 ${i + 1}`}
             aria-current={i === now}
             onClick={() => setNow(i)}
-            className={cn("size-2.5 rounded-sm", i === now ? "bg-neutral-700" : "bg-neutral-300")}
+            className={cn(
+              "relative size-2.5 rounded-sm before:absolute before:-inset-2 before:content-['']",
+              i === now ? "bg-neutral-700" : "bg-neutral-300"
+            )}
           />
         ))}
       </div>

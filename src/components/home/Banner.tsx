@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -20,12 +20,16 @@ export default function Banner() {
   return (
     <section className="relative mx-auto h-[70vh] max-h-[800px] min-h-[420px] w-full max-w-6xl overflow-hidden">
       {SLIDES.map((src, i) => (
-        <img
+        <Image
           key={src}
           src={`/images/bannerImages/${src}`}
           alt=""
+          fill
+          // 첫 장이 첫 화면 가장 큰 요소(LCP) - 미리 받기, 나머지는 바뀔 때 보이니 기본(lazy)
+          priority={i === 0}
+          sizes="(min-width: 1152px) 1152px, 100vw"
           className={cn(
-            "absolute inset-0 size-full object-cover transition-opacity duration-1000 motion-reduce:transition-none",
+            "object-cover transition-opacity duration-1000 motion-reduce:transition-none",
             i === current ? "opacity-100" : "opacity-0"
           )}
         />
