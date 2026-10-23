@@ -61,11 +61,11 @@ export default function Header() {
       onMouseLeave={() => setOpenTab(null)}
     >
       <header className="mx-auto flex h-16 max-w-6xl items-center px-4 md:h-24">
-        <Link href="/" className="w-28 shrink-0 md:w-40" aria-label="FootPrint 홈">
+        <Link href="/" className="w-28 shrink-0 md:w-40" aria-label="유레카 홈">
           {/* 로고 원본 1024x512 → 화면 최대 160px 폭 */}
           <Image
             src={solid ? "/images/headerImages/blackLogo.png" : "/images/headerImages/logo.png"}
-            alt="FootPrint"
+            alt="유레카"
             width={160}
             height={80}
             priority

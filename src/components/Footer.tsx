@@ -29,11 +29,11 @@ export default function Footer() {
           ))}
         </ul>
         <hr className="mx-auto max-w-4xl border-neutral-800" />
-        <p className="py-6 text-center text-sm text-neutral-500">&copy; FootPrint</p>
+        <p className="py-6 text-center text-sm text-neutral-500">&copy; 유레카</p>
         <div className="flex items-center justify-between pb-8">
           <Image
             src="/images/footerImages/logo.png"
-            alt="FootPrint"
+            alt="유레카"
             width={144}
             height={72}
             className="h-auto w-28 md:w-36"

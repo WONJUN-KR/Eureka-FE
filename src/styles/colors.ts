@@ -1,4 +1,4 @@
-// FootPrint 임시 색상 팔레트 (디자인 확정 전 기본 색상)
+// 유레카 임시 색상 팔레트 (디자인 확정 전 기본 색상)
 export const colors = {
   primary: {
     50: "#f0fdf4",
