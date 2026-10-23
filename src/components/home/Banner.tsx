@@ -52,9 +52,10 @@ export default function Banner() {
         <h2 className="text-2xl font-semibold text-white drop-shadow md:text-3xl">
           여행의 발견, 유레카!
         </h2>
+        {/* 원본 하늘색(135,192,206) 글자는 밝은 반투명 배경 위에서 대비 2:1 미만 → 같은 색 계열을 어둡게 + 배경 불투명도 올려 4.5:1 이상 */}
         <Link
           href="/posts/new"
-          className="rounded-full bg-white/70 px-8 py-3 text-2xl font-bold text-[rgb(135,192,206)] transition-colors hover:bg-white/90 md:text-3xl"
+          className="rounded-full bg-white/85 px-8 py-3 text-2xl font-bold text-[rgb(44,110,128)] transition-colors hover:bg-white md:text-3xl"
         >
           나만의 장소 공유하기
         </Link>
