@@ -7,6 +7,7 @@ import { useLogin, useSignup } from "@/api/mutations";
 import { getErrorMessage } from "@/api/request";
 import type { Gender, SignupRequest } from "@/api/types";
 import { ErrorText, Field, inputClass, SubmitButton } from "@/components/ui/field";
+import { LogoMark } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -155,6 +156,7 @@ function LoginAndJoin() {
 
   return (
     <div className="mx-auto max-w-md px-4 pb-8 pt-28 md:pt-36">
+      <LogoMark className="mb-6 h-10 w-auto text-primary" />
       <h1 className="mb-2 font-serif text-[32px] leading-tight tracking-tight">
         {tab === "login" ? "로그인" : "회원가입"}
       </h1>
