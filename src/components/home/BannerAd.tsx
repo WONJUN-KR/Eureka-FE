@@ -1,89 +1,63 @@
 "use client";
 
-import { MapPinned, PenLine, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { cn } from "@/lib/utils";
-
-// 원본 bannerAd.jsp 자리: 3장이 3초마다 옆으로 넘어가고, 아래 점을 누르면 그 장으로
-// 원본은 실제 업체 광고 이미지(상표)라 쓸 수 없어서 → 사이트 안 기능을 안내하는 배너(그라데이션 + 아이콘, 이미지 없음)
+// 원본 bannerAd.jsp 자리: 원본은 실제 업체 광고 이미지라 쓸 수 없어서 사이트 안 기능 안내 3장
+// 자동으로 넘기지 않고 아래 번호로 고름 (읽는 중에 바뀌지 않게)
 const ADS = [
   {
     href: "/posts/new",
-    title: "나만의 장소를 공유해보세요",
-    text: "혼자 알기 아까운 스팟, 사진 한 장이면 충분해요",
-    Icon: PenLine,
-    tone: "from-sky-500 to-cyan-400",
+    title: "오늘은 내가 투어가이드",
+    text: "혼자 즐기기 아쉬운 스팟을 순서대로 공유해 주세요",
+    cta: "나만의 장소 공유하기",
   },
   {
     href: "/posts",
-    title: "다른 사람의 여행 따라가기",
-    text: "지역과 테마로 여행 기록을 찾아보세요",
-    Icon: MapPinned,
-    tone: "from-emerald-500 to-teal-400",
+    title: "처음 가는 곳도 나의 홈 그라운드",
+    text: "다른 사람이 다녀온 경로를 지도 삼아 그대로 따라가 보세요",
+    cta: "여행 기록 둘러보기",
   },
   {
     href: "/posts?categoryId=2",
     title: "맛집가자, 이번 주말 어디 갈까?",
     text: "한식부터 카페까지 여행지 맛집 모음",
-    Icon: UtensilsCrossed,
-    tone: "from-orange-500 to-amber-400",
+    cta: "맛집 기록 보기",
   },
 ];
 
 export default function BannerAd() {
   const [now, setNow] = useState(0);
-
-  useEffect(() => {
-    const t = setInterval(() => setNow((n) => (n + 1) % ADS.length), 3000);
-    return () => clearInterval(t);
-  }, [now]);
+  const ad = ADS[now];
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-12" aria-label="추천 배너">
-      <div className="overflow-hidden rounded-[28px] md:rounded-[50px]">
-        <div
-          className="flex transition-transform duration-500 motion-reduce:transition-none"
-          style={{ transform: `translateX(-${now * 100}%)` }}
-        >
-          {ADS.map((a, i) => (
-            <Link
-              key={a.href}
-              href={a.href}
-              tabIndex={i === now ? 0 : -1}
-              className={cn(
-                "flex min-h-32 w-full shrink-0 py-6 md:aspect-[11/3] md:min-h-0 md:py-0 items-center justify-between gap-4 bg-gradient-to-r px-6 text-white md:px-16",
-                a.tone
-              )}
-            >
-              <span>
-                <span className="block text-lg font-bold md:text-3xl">{a.title}</span>
-                <span className="mt-1 block text-sm opacity-90 md:mt-3 md:text-lg">{a.text}</span>
-              </span>
-              <a.Icon
-                aria-hidden
-                strokeWidth={1.5}
-                className="size-12 shrink-0 opacity-90 md:size-24"
-              />
-            </Link>
-          ))}
+    <section className="mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-24" aria-label="안내 배너">
+      <div className="flex flex-col gap-6 rounded-[20px] bg-primary px-6 py-10 text-primary-foreground md:flex-row md:items-center md:justify-between md:px-14 md:py-12">
+        <div>
+          <div className="mb-3 flex gap-1" aria-label="배너 고르기">
+            {ADS.map((a, i) => (
+              <button
+                key={a.href}
+                type="button"
+                aria-pressed={i === now}
+                aria-label={`배너 ${i + 1}`}
+                onClick={() => setNow(i)}
+                className={`rounded px-1.5 text-sm tabular-nums ${i === now ? "opacity-100" : "opacity-60 hover:opacity-80"}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <span className="ml-1 text-sm tabular-nums opacity-60">/ {ADS.length}</span>
+          </div>
+          <h3 className="mb-2 font-serif text-[22px] leading-snug md:text-[26px]">{ad.title}</h3>
+          <p className="opacity-80">{ad.text}</p>
         </div>
-      </div>
-      <div className="mt-4 flex justify-center gap-2">
-        {ADS.map((a, i) => (
-          <button
-            key={a.href}
-            type="button"
-            aria-label={`배너 ${i + 1}`}
-            aria-current={i === now}
-            onClick={() => setNow(i)}
-            className={cn(
-              "relative size-2.5 rounded-sm before:absolute before:-inset-2 before:content-['']",
-              i === now ? "bg-neutral-700" : "bg-neutral-300"
-            )}
-          />
-        ))}
+        <Link
+          href={ad.href}
+          className="inline-flex h-11 shrink-0 items-center self-start rounded-[10px] bg-card px-5 text-[15px] font-medium text-foreground hover:bg-card/90 md:self-center"
+        >
+          {ad.cta}
+        </Link>
       </div>
     </section>
   );
