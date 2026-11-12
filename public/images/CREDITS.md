@@ -5,9 +5,7 @@
 
 | 파일                                           | 사진                                                                              |
 | ---------------------------------------------- | --------------------------------------------------------------------------------- |
-| bannerImages/banner1.jpg                       | https://unsplash.com/photos/oMsXE4kIKC8                                           |
 | bannerImages/banner2.jpg                       | https://unsplash.com/photos/JjnCtpzFXo4                                           |
-| bannerImages/banner3.jpg                       | https://unsplash.com/photos/Pa-DHzsGRDU                                           |
 | recommendImages/seoul.jpg · seoul2.jpg         | https://unsplash.com/photos/RbaGeW_LbGs · https://unsplash.com/photos/Via0Hy2rYIc |
 | recommendImages/gangneung.jpg · gangneung2.jpg | https://unsplash.com/photos/4wbQ_Tyfoa4 · https://unsplash.com/photos/Pa-DHzsGRDU |
 | recommendImages/sokcho.jpg · sokcho2.jpg       | https://unsplash.com/photos/qfjIZ6FFW0E · https://unsplash.com/photos/be58bEgXHmA |

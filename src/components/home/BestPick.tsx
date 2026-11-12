@@ -28,7 +28,7 @@ function Meta({ post }: { post: PostResponse }) {
 }
 
 export default function BestPick() {
-  const { data, isLoading } = usePosts({ sort: "likeCount,desc", size: 5 });
+  const { data, isLoading, isError } = usePosts({ sort: "likeCount,desc", size: 5 });
   const [first, ...rest] = data?.content ?? [];
 
   return (
@@ -41,7 +41,10 @@ export default function BestPick() {
       {isLoading && (
         <div className="h-[420px] animate-pulse rounded-2xl bg-secondary motion-reduce:animate-none" />
       )}
-      {!isLoading && !first && <p className="py-12 text-ink-2">아직 글이 없어요</p>}
+      {isError && (
+        <p className="py-12 text-ink-2">글을 불러오지 못했어요. 잠시 뒤 다시 들러 주세요</p>
+      )}
+      {!isLoading && !isError && !first && <p className="py-12 text-ink-2">아직 글이 없어요</p>}
       {first && (
         <div className="grid gap-10 md:grid-cols-[7fr_5fr] md:gap-12">
           <Link href={`/posts/${first.id}`} className="group block">
