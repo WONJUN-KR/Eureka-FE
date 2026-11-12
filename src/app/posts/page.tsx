@@ -137,7 +137,7 @@ function BoardList() {
             // 칸의 지우기(x)로 비우면 검색도 바로 풀림
             if (!e.target.value && keyword) setParams({ keyword: undefined });
           }}
-          placeholder="제목 · 본문 · 들른 장소 이름으로 찾기"
+          placeholder="제목 · 본문 · 장소 이름"
           className={cn(inputClass, "h-10 py-0 pl-10 text-sm")}
         />
       </form>
@@ -231,9 +231,7 @@ function BoardList() {
         )}
         {data && data.content.length === 0 && (
           <p className="py-16 text-center text-ink-2">
-            {keyword
-              ? `'${keyword}'(이)가 들어간 여행 기록이 없어요`
-              : "아직 이 조건의 글이 없어요"}
+            {keyword ? "이 검색어로 찾은 여행 기록이 없어요" : "아직 이 조건의 글이 없어요"}
           </p>
         )}
         <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
