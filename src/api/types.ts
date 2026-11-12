@@ -54,6 +54,13 @@ export interface UserResponse {
   gender: Gender | null;
 }
 
+// 다른 사람이 보는 프로필 (개인 정보 제외)
+export interface UserProfileResponse {
+  id: number;
+  nickname: string;
+  postCount: number;
+}
+
 export interface PostResponse {
   id: number;
   title: string;

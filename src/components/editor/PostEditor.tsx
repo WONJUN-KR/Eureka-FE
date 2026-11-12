@@ -186,7 +186,10 @@ export default function PostEditor({
       }
     }
     // 저장 직후 무효화는 사진 정리 전이라 한 번 더 - 상세가 지운 · 새 사진을 바로 보여주게
-    await qc.invalidateQueries({ queryKey: queryKeys.posts.all });
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: queryKeys.posts.all }),
+      qc.invalidateQueries({ queryKey: queryKeys.user.postsAll }),
+    ]);
     const notes = [
       failed > 0 && `사진 ${failed}장을 올리지 못했어요.`,
       notDeleted > 0 && `사진 ${notDeleted}장을 지우지 못했어요.`,
