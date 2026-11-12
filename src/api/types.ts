@@ -65,8 +65,16 @@ export interface PostResponse {
   likeCount: number;
   status: string;
   createdAt: string;
-  // 4번이 BE 에 추가 중 - 없거나 null 이면 기본 이미지
+  // 없거나 null 이면 기본 이미지
   thumbnailUrl?: string | null;
+  // 들른 장소 이름 · 위치 (들른 순서대로) - 장소 기능 전 BE 면 없음
+  places?: PlacePoint[];
+}
+
+export interface PlacePoint {
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface PostDetailResponse {

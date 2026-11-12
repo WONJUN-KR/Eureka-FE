@@ -1,7 +1,6 @@
 "use client";
 
-import { Search, UserRound } from "lucide-react";
-import Image from "next/image";
+import { Menu, PenLine, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,8 +10,8 @@ import type { CityResponse } from "@/api/types";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-// 원본(2021 유레카 header.jsp) 구조: 로고 · 메뉴(지역 + 카테고리 3개) · 마이페이지·검색 아이콘
-// - 홈 맨 위에선 배너 위에 투명하게 겹치고(흰 로고), 100px 넘게 내리면 흰 배경 + 검은 로고
+// 원본(2021 유레카 header.jsp) 구조: 로고 · 메뉴(지역 + 카테고리 3개) · 오른쪽 계정 메뉴
+// - 홈 맨 위에선 첫 화면 사진 위에 투명하게 겹치고, 내리면 종이색 배경
 // - 메뉴에 마우스를 올리면 큰 메뉴가 펼쳐짐: 지역은 시·도 → 도시, 카테고리는 세부 테마
 // - 지역에서 도시를 고른 뒤 테마를 누르면 그 도시 + 테마로 목록 이동 (원본 city_no + detail_option_no)
 export default function Header() {
@@ -21,6 +20,7 @@ export default function Header() {
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [openTab, setOpenTab] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [hoverRegion, setHoverRegion] = useState<number>();
   const [pickedCity, setPickedCity] = useState<CityResponse | null>(null);
   const { isAuthenticated, isHydrated } = useAuthStore();
@@ -33,13 +33,21 @@ export default function Header() {
   const { data: subCategories } = useSubCategories(activeCategoryId);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY >= 100);
+    const onScroll = () => setScrolled(window.scrollY >= 80);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const solid = !isHome || scrolled || openTab !== null;
+  // 페이지를 옮기면 펼친 메뉴는 닫음 (렌더 중에 이전 주소와 비교 - effect 안 setState 대신)
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpenTab(null);
+    setMobileOpen(false);
+  }
+
+  const solid = !isHome || scrolled || openTab !== null || mobileOpen;
   const tabs = [
     { key: "area", label: pickedCity?.name ?? "지역" },
     ...(categories ?? []).map((c) => ({ key: `cat-${c.id}`, label: c.name })),
@@ -49,40 +57,42 @@ export default function Header() {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => v != null && q.set(k, String(v)));
     setOpenTab(null);
+    setMobileOpen(false);
     router.push(`/posts${q.size ? `?${q}` : ""}`);
   };
+
+  const quiet = solid ? "text-ink-2 hover:text-foreground" : "text-white/85 hover:text-white";
 
   return (
     <div
       className={cn(
-        "fixed inset-x-0 top-0 z-30 transition-colors duration-500",
-        solid && "bg-white shadow-sm"
+        "fixed inset-x-0 top-0 z-30 transition-colors duration-300",
+        solid ? "border-b bg-background/95 backdrop-blur" : "bg-transparent"
       )}
       onMouseLeave={() => setOpenTab(null)}
     >
-      <header className="mx-auto flex h-16 max-w-6xl items-center px-4 md:h-24">
-        <Link href="/" className="w-28 shrink-0 md:w-40" aria-label="유레카 홈">
-          {/* 로고 원본 1024x512 → 화면 최대 160px 폭 */}
-          <Image
-            src={solid ? "/images/headerImages/blackLogo.png" : "/images/headerImages/logo.png"}
-            alt="유레카"
-            width={160}
-            height={80}
-            priority
-            className="h-auto w-full"
-          />
+      <header className="mx-auto flex h-16 max-w-6xl items-center gap-10 px-4 md:px-8">
+        <Link
+          href="/"
+          className={cn(
+            "font-serif text-[22px] tracking-tight",
+            solid ? "text-foreground" : "text-white"
+          )}
+        >
+          유레카
         </Link>
-        <nav className="hidden flex-1 md:block" aria-label="주 메뉴">
-          <ul className="flex">
+        <nav className="hidden md:block" aria-label="주 메뉴">
+          <ul className="flex gap-7">
             {tabs.map((t) => (
-              <li key={t.key} className="flex-1 text-center" onMouseEnter={() => setOpenTab(t.key)}>
+              <li key={t.key} onMouseEnter={() => setOpenTab(t.key)}>
                 <button
                   type="button"
                   onClick={() => setOpenTab(openTab === t.key ? null : t.key)}
                   aria-expanded={openTab === t.key}
                   className={cn(
-                    "py-2 text-xl font-semibold transition-opacity hover:opacity-80",
-                    solid ? "text-neutral-500" : "text-white drop-shadow"
+                    "py-5 text-[15px] transition-colors",
+                    quiet,
+                    openTab === t.key && (solid ? "text-foreground" : "text-white")
                   )}
                 >
                   {t.label}
@@ -91,42 +101,72 @@ export default function Header() {
             ))}
           </ul>
         </nav>
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto hidden items-center gap-5 text-[15px] md:flex">
+          <Link href={loggedIn ? "/posts/new" : "/login"} className={quiet}>
+            글쓰기
+          </Link>
+          {loggedIn ? (
+            <Link href="/mypage" className={quiet}>
+              마이페이지
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className={quiet}>
+                로그인
+              </Link>
+              <Link
+                href="/signup"
+                className={cn(
+                  "inline-flex h-9 items-center rounded-[10px] px-3.5 text-sm font-medium",
+                  solid
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "bg-white text-foreground"
+                )}
+              >
+                가입하기
+              </Link>
+            </>
+          )}
+        </div>
+        <div className="ml-auto flex items-center gap-1 md:hidden">
           <Link
-            href={loggedIn ? "/mypage" : "/login"}
-            aria-label={loggedIn ? "마이페이지" : "로그인"}
+            href={loggedIn ? "/posts/new" : "/login"}
+            aria-label="글쓰기"
+            className={cn("rounded-lg p-2", solid ? "text-foreground" : "text-white")}
           >
-            <UserRound
-              aria-hidden
-              strokeWidth={1.75}
-              className={cn("size-7", solid ? "text-neutral-700" : "text-white drop-shadow")}
-            />
+            <PenLine className="size-[18px]" strokeWidth={1.5} />
           </Link>
-          <Link href="/posts" aria-label="전체 글 보기">
-            <Search
-              aria-hidden
-              strokeWidth={1.75}
-              className={cn("size-7", solid ? "text-neutral-700" : "text-white drop-shadow")}
-            />
-          </Link>
+          <button
+            type="button"
+            aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((o) => !o)}
+            className={cn("rounded-lg p-2", solid ? "text-foreground" : "text-white")}
+          >
+            {mobileOpen ? (
+              <X className="size-[18px]" strokeWidth={1.5} />
+            ) : (
+              <Menu className="size-[18px]" strokeWidth={1.5} />
+            )}
+          </button>
         </div>
       </header>
 
       {/* 큰 메뉴 (원본 subMenu) */}
       {openTab && (
-        <div className="hidden border-t bg-white md:block">
-          <div className="mx-auto flex min-h-64 max-w-6xl px-4 py-6">
+        <div className="hidden border-t bg-background md:block">
+          <div className="mx-auto flex min-h-56 max-w-6xl px-8 py-6">
             {openTab === "area" ? (
               <>
-                <ul className="w-2/5 border-r pr-10 text-right">
+                <ul className="w-56 border-r pr-8">
                   {regions?.map((r) => (
                     <li key={r.id} onMouseEnter={() => setHoverRegion(r.id)}>
                       <button
                         type="button"
                         onClick={() => goList({ regionId: r.id })}
                         className={cn(
-                          "py-3 text-lg font-bold text-neutral-500 hover:text-primary",
-                          hoverRegion === r.id && "text-primary"
+                          "w-full py-2 text-left text-[15px] text-ink-2 hover:text-foreground",
+                          hoverRegion === r.id && "text-foreground"
                         )}
                       >
                         {r.name}
@@ -134,9 +174,9 @@ export default function Header() {
                     </li>
                   ))}
                 </ul>
-                <ul className="flex flex-1 flex-wrap content-start gap-x-8 gap-y-3 pl-10 pt-3">
+                <ul className="flex flex-1 flex-wrap content-start gap-x-8 gap-y-2 pl-8 pt-2">
                   {hoverRegion == null && (
-                    <li className="text-sm text-neutral-400">
+                    <li className="text-sm text-muted-foreground">
                       시·도에 마우스를 올려 도시를 골라주세요
                     </li>
                   )}
@@ -148,7 +188,7 @@ export default function Header() {
                           setPickedCity(c);
                           goList({ cityId: c.id });
                         }}
-                        className="text-lg font-semibold text-neutral-500 hover:text-primary"
+                        className="text-[15px] text-ink-2 hover:text-foreground"
                       >
                         {c.name}
                       </button>
@@ -158,29 +198,40 @@ export default function Header() {
               </>
             ) : (
               <div className="flex flex-1">
-                <div className="w-2/5 border-r pr-10 text-right text-sm text-neutral-400">
+                <div className="w-56 border-r pr-8 text-sm text-muted-foreground">
                   {pickedCity ? (
                     <>
-                      <p className="py-3 text-lg font-bold text-primary">{pickedCity.name}</p>
+                      <p className="py-2 text-[15px] text-foreground">{pickedCity.name}</p>
                       <button
                         type="button"
-                        className="underline"
+                        className="underline underline-offset-4"
                         onClick={() => setPickedCity(null)}
                       >
                         지역 해제
                       </button>
                     </>
                   ) : (
-                    <p className="py-3">지역을 먼저 고르면 그 도시 안에서 찾아요</p>
+                    <p className="py-2">지역을 먼저 고르면 그 도시 안에서 찾아요</p>
                   )}
                 </div>
-                <ul className="flex flex-1 flex-wrap content-start gap-x-8 gap-y-3 pl-10 pt-3">
+                <ul className="flex flex-1 flex-wrap content-start gap-x-8 gap-y-2 pl-8 pt-2">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        goList({ cityId: pickedCity?.id, categoryId: activeCategoryId })
+                      }
+                      className="text-[15px] text-foreground hover:underline hover:underline-offset-4"
+                    >
+                      전체
+                    </button>
+                  </li>
                   {subCategories?.map((s) => (
                     <li key={s.id}>
                       <button
                         type="button"
                         onClick={() => goList({ cityId: pickedCity?.id, subCategoryId: s.id })}
-                        className="text-lg font-semibold text-neutral-500 hover:text-primary"
+                        className="text-[15px] text-ink-2 hover:text-foreground"
                       >
                         {s.name}
                       </button>
@@ -191,6 +242,65 @@ export default function Header() {
             )}
           </div>
         </div>
+      )}
+
+      {/* 휴대폰 메뉴 - 지역과 카테고리는 목록 화면의 필터로 바로 이동 */}
+      {mobileOpen && (
+        <nav className="border-t bg-background px-4 pb-6 pt-2 md:hidden" aria-label="휴대폰 메뉴">
+          <p className="pb-1 pt-3 text-sm text-muted-foreground">카테고리</p>
+          <ul>
+            {categories?.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => goList({ categoryId: c.id })}
+                  className="w-full py-2.5 text-left text-[15px]"
+                >
+                  {c.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <p className="pb-1 pt-4 text-sm text-muted-foreground">지역</p>
+          <ul className="grid grid-cols-2">
+            {regions?.map((r) => (
+              <li key={r.id}>
+                <button
+                  type="button"
+                  onClick={() => goList({ regionId: r.id })}
+                  className="w-full py-2.5 text-left text-[15px]"
+                >
+                  {r.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 flex gap-2 border-t pt-4">
+            {loggedIn ? (
+              <Link
+                href="/mypage"
+                className="flex-1 rounded-[10px] border py-2.5 text-center text-sm"
+              >
+                마이페이지
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="flex-1 rounded-[10px] border py-2.5 text-center text-sm"
+                >
+                  로그인
+                </Link>
+                <Link
+                  href="/signup"
+                  className="flex-1 rounded-[10px] bg-primary py-2.5 text-center text-sm text-primary-foreground"
+                >
+                  가입하기
+                </Link>
+              </>
+            )}
+          </div>
+        </nav>
       )}
     </div>
   );
