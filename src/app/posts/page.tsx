@@ -80,7 +80,9 @@ function BoardList() {
   const [lastKeyword, setLastKeyword] = useState(keyword);
   if (keyword !== lastKeyword) {
     setLastKeyword(keyword);
-    setText(keyword ?? "");
+    // 칸을 비워 검색을 푸는 사이 새로 친 글자는 남김 (주소가 늦게 바뀌어도 덮어쓰지 않게)
+    const typedAfterClear = keyword == null && text !== "" && text !== lastKeyword;
+    if (!typedAfterClear) setText(keyword ?? "");
   }
   // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
   const unknownSub = subCategoryId != null && !subCategory;
@@ -89,8 +91,9 @@ function BoardList() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-serif text-[32px] leading-tight tracking-tight md:text-[40px]">
+        <div className="min-w-0 max-w-full">
+          {/* 띄어쓰기 없는 긴 검색어도 줄을 바꿔 화면 밖으로 넘치지 않게 */}
+          <h1 className="font-serif text-[32px] leading-tight tracking-tight [overflow-wrap:anywhere] md:text-[40px]">
             {title}
           </h1>
           <p className="mt-2 text-[15px] tabular-nums text-ink-2">
