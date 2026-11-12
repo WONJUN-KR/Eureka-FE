@@ -61,7 +61,7 @@ export default function RecommendTravel() {
                   />
                 </div>
                 <p className="mt-3 text-[17px] font-medium">{c.name}</p>
-                <p className="text-sm text-muted-foreground">{found?.region ?? " "}</p>
+                <p className="text-sm text-muted-foreground">{found?.region ?? "\u00a0"}</p>
               </Link>
             </li>
           );

@@ -34,7 +34,7 @@ export default function BannerAd() {
     <section className="mx-auto max-w-6xl px-4 pt-20 md:px-8 md:pt-24" aria-label="안내 배너">
       <div className="flex flex-col gap-6 rounded-[20px] bg-primary px-6 py-10 text-primary-foreground md:flex-row md:items-center md:justify-between md:px-14 md:py-12">
         <div>
-          <div className="mb-3 flex gap-1" aria-label="배너 고르기">
+          <div className="mb-3 flex gap-1" role="group" aria-label="배너 고르기">
             {ADS.map((a, i) => (
               <button
                 key={a.href}
@@ -49,8 +49,10 @@ export default function BannerAd() {
             ))}
             <span className="ml-1 text-sm tabular-nums opacity-60">/ {ADS.length}</span>
           </div>
-          <h3 className="mb-2 font-serif text-[22px] leading-snug md:text-[26px]">{ad.title}</h3>
-          <p className="opacity-80">{ad.text}</p>
+          <div aria-live="polite">
+            <h3 className="mb-2 font-serif text-[22px] leading-snug md:text-[26px]">{ad.title}</h3>
+            <p className="opacity-80">{ad.text}</p>
+          </div>
         </div>
         <Link
           href={ad.href}

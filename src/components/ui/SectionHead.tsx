@@ -5,19 +5,17 @@ export default function SectionHead({
   title,
   description,
   more,
-  as: Tag = "h2",
 }: {
   title: string;
   description?: string;
   more?: { href: string; label: string };
-  as?: "h1" | "h2";
 }) {
   return (
     <div className="mb-8 flex items-end justify-between gap-4">
       <div>
-        <Tag className="font-serif text-[26px] leading-tight tracking-tight md:text-[32px]">
+        <h2 className="font-serif text-[26px] leading-tight tracking-tight md:text-[32px]">
           {title}
-        </Tag>
+        </h2>
         {description && <p className="mt-2 text-[15px] text-ink-2">{description}</p>}
       </div>
       {more && (
