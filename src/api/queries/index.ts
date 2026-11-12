@@ -19,7 +19,7 @@ import type {
   UserResponse,
 } from "../types";
 
-export function usePosts(params: PostListParams) {
+export function usePosts(params: PostListParams, enabled = true) {
   return useQuery({
     queryKey: queryKeys.posts.list(params as Record<string, unknown>),
     queryFn: () =>
@@ -28,6 +28,7 @@ export function usePosts(params: PostListParams) {
         // 배열은 sort=a&sort=b 로 (Spring 이 받는 모양)
         paramsSerializer: { indexes: null },
       }),
+    enabled,
   });
 }
 

@@ -95,6 +95,25 @@ export interface PostDetailResponse {
   status: string;
   createdAt: string;
   updatedAt: string;
+  // 들른 순서대로 - 장소 기능 전 BE 면 없음
+  places?: PlaceResponse[];
+}
+
+export interface PlaceResponse {
+  id: number;
+  seq: number;
+  name: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  kakaoPlaceId: string | null;
+  subCategoryId: number | null;
+  subCategoryName: string | null;
+  memo: string | null;
+  // "HH:mm"
+  visitedAt: string | null;
+  // 사진 없는 장소는 빈 배열 - 혹시 빠져 와도 화면이 멈추지 않게 선택값으로
+  images?: ImageResponse[] | null;
 }
 
 export interface CreatePostRequest {
@@ -146,6 +165,8 @@ export interface LikeResponse {
 export interface ImageResponse {
   id: number;
   postId: number;
+  // 장소 사진이면 그 장소 id
+  placeId?: number | null;
   url: string;
   seq: number;
 }
