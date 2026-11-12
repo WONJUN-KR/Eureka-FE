@@ -53,12 +53,12 @@ export default function MyPage() {
         </button>
       </section>
 
-      <h2 className="mb-6 text-xl font-bold">내가 남긴 발자취</h2>
+      <h2 className="mb-6 text-xl font-bold">내가 쓴 글</h2>
       {mine.isError && (
         <p className="py-12 text-center text-neutral-500">내 글 목록은 준비 중이에요.</p>
       )}
       {mine.data && mine.data.content.length === 0 && (
-        <p className="py-12 text-center text-neutral-500">아직 남긴 발자취가 없어요.</p>
+        <p className="py-12 text-center text-neutral-500">아직 쓴 글이 없어요.</p>
       )}
       <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {mine.isLoading && Array.from({ length: 6 }, (_, i) => <PostCardSkeleton key={i} />)}
