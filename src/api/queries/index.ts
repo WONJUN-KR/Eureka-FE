@@ -16,6 +16,7 @@ import type {
   PostResponse,
   RegionResponse,
   SubCategoryResponse,
+  UserProfileResponse,
   UserResponse,
 } from "../types";
 
@@ -94,6 +95,32 @@ export function useMe(enabled: boolean) {
   return useQuery({
     queryKey: queryKeys.user.me(),
     queryFn: () => get<UserResponse>(ENDPOINTS.USERS.ME),
+    enabled,
+  });
+}
+
+export function useUserProfile(id: number) {
+  return useQuery({
+    queryKey: queryKeys.user.profile(id),
+    queryFn: () => get<UserProfileResponse>(ENDPOINTS.USERS.PROFILE(id)),
+    enabled: Number.isFinite(id),
+  });
+}
+
+// 한 사람의 공개 글 - 지도에 여행을 다 그리려고 넉넉히 50개
+export function useUserPosts(id: number, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.user.posts(id),
+    queryFn: () => get<Page<PostResponse>>(ENDPOINTS.USERS.POSTS(id), { params: { size: 50 } }),
+    enabled: enabled && Number.isFinite(id),
+  });
+}
+
+// 내 글 - 공개 전 · 숨김 글까지 (마이페이지)
+export function useMyPosts(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.user.myPosts(),
+    queryFn: () => get<Page<PostResponse>>(ENDPOINTS.USERS.MY_POSTS, { params: { size: 50 } }),
     enabled,
   });
 }

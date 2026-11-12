@@ -8,6 +8,9 @@ export const ENDPOINTS = {
     ME: "/api/users/me",
     UPDATE: "/api/users/me",
     DELETE: "/api/users/me",
+    MY_POSTS: "/api/users/me/posts",
+    PROFILE: (id: number) => `/api/users/${id}`,
+    POSTS: (id: number) => `/api/users/${id}/posts`,
   },
   POSTS: {
     LIST: "/api/posts",
