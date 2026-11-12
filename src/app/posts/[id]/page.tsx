@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Clock, Heart, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useDeletePost, useToggleLike } from "@/api/mutations";
 import { useLikeStatus, useMe, usePost, usePostImages, usePosts } from "@/api/queries";
@@ -32,7 +32,11 @@ export default function PostDetailPage() {
   const [viewer, setViewer] = useState<{ images: ImageResponse[]; index: number } | null>(null);
 
   const { data: post, isLoading, isError, error } = usePost(postId, !deleted);
-  const { data: images = [] } = usePostImages(postId, !deleted);
+  const {
+    data: images = [],
+    isLoading: imagesLoading,
+    isError: imagesError,
+  } = usePostImages(postId, !deleted);
   const { data: like } = useLikeStatus(postId, loggedIn && !deleted);
   const { data: me } = useMe(loggedIn);
   const { data: sameCity } = usePosts({ cityId: post?.location.cityId, size: 4 }, post != null);
@@ -63,10 +67,12 @@ export default function PostDetailPage() {
   const others = (sameCity?.content ?? []).filter((p) => p.id !== post.id).slice(0, 3);
   // 위 사진 칸에는 글 전체 사진만 - 장소 사진은 들른 곳 안에서 보여줌
   const postImages = images.filter((x) => x.placeId == null);
-  // 지도 · 오른쪽 목록에서 장소를 고르면 본문의 그 장소로 스크롤
+  // 지도 · 오른쪽 목록에서 장소를 고르면 본문의 그 장소로 스크롤 + 키보드 포커스도 그 장소 번호로
   const focusStop = (i: number) => {
     setActive(i);
-    document.getElementById(`stop-${i}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const stop = document.getElementById(`stop-${i}`);
+    stop?.scrollIntoView({ behavior: "smooth", block: "center" });
+    stop?.querySelector("button")?.focus({ preventScroll: true });
   };
 
   return (
@@ -122,11 +128,18 @@ export default function PostDetailPage() {
         )}
       </p>
 
-      <Gallery
-        images={postImages}
-        title={post.title}
-        onOpen={(index) => setViewer({ images: postImages, index })}
-      />
+      {/* 사진을 받는 동안엔 사진 칸 자리를 잡아둠 - 본문을 읽다가 사진이 끼어들어 밀리지 않게 */}
+      {imagesLoading ? (
+        <div className="mt-9 h-[300px] animate-pulse rounded-2xl bg-secondary motion-reduce:animate-none md:h-[520px]" />
+      ) : imagesError ? (
+        <p className="mt-9 text-sm text-muted-foreground">사진을 불러오지 못했어요.</p>
+      ) : (
+        <Gallery
+          images={postImages}
+          title={post.title}
+          onOpen={(index) => setViewer({ images: postImages, index })}
+        />
+      )}
 
       <div className="grid gap-12 pt-12 md:grid-cols-[minmax(0,1fr)_360px] md:gap-[72px] md:pt-14">
         <article className="min-w-0">
@@ -152,7 +165,7 @@ export default function PostDetailPage() {
                     last={i === places.length - 1}
                     active={active === i}
                     onFocus={() => setActive(i)}
-                    onOpenImage={(index) => setViewer({ images: pl.images, index })}
+                    onOpenImage={(index) => setViewer({ images: pl.images ?? [], index })}
                   />
                 ))}
               </ol>
@@ -252,7 +265,10 @@ export default function PostDetailPage() {
         <section className="pt-24">
           <SectionHead
             title={`${post.location.cityName}의 다른 기록`}
-            more={{ href: `/posts?cityId=${post.location.cityId}`, label: "더 보기" }}
+            more={{
+              href: `/posts?regionId=${post.location.regionId}&cityId=${post.location.cityId}`,
+              label: "더 보기",
+            }}
           />
           <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {others.map((p) => (
@@ -347,6 +363,7 @@ function Stop({
   onFocus: () => void;
   onOpenImage: (index: number) => void;
 }) {
+  const pics = place.images ?? [];
   return (
     <li id={`stop-${index}`} className="relative grid grid-cols-[36px_1fr] gap-4 pb-8">
       {/* 다음 장소로 이어지는 점선 */}
@@ -382,9 +399,9 @@ function Stop({
         </div>
         {place.address && <p className="mt-0.5 text-sm text-muted-foreground">{place.address}</p>}
         {place.memo && <p className="mt-2 text-[15px] text-ink-2">{place.memo}</p>}
-        {place.images.length > 0 && (
+        {pics.length > 0 && (
           <div className="mt-3 flex gap-2">
-            {place.images.map((img, k) => (
+            {pics.map((img, k) => (
               <button
                 key={img.id}
                 type="button"
@@ -422,8 +439,32 @@ function Viewer({
   onClose: () => void;
 }) {
   const n = images.length;
+  const dialog = useRef<HTMLDivElement>(null);
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  // 열 때 닫기 버튼으로 포커스, 닫으면 누른 사진 버튼으로 되돌림
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    closeBtn.current?.focus();
+    return () => prev?.focus();
+  }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // 열려 있는 동안 Tab 은 뷰어 버튼 안에서만 돎
+      if (e.key === "Tab" && dialog.current) {
+        const items = [...dialog.current.querySelectorAll<HTMLElement>("button")];
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (!dialog.current.contains(document.activeElement)) {
+          e.preventDefault();
+          first?.focus();
+        } else if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") onChange((index - 1 + n) % n);
       if (e.key === "ArrowRight") onChange((index + 1) % n);
@@ -435,6 +476,7 @@ function Viewer({
   const img = images[index];
   return (
     <div
+      ref={dialog}
       role="dialog"
       aria-modal="true"
       aria-label="사진 크게 보기"
@@ -455,6 +497,7 @@ function Viewer({
         {index + 1} / {n}
       </p>
       <button
+        ref={closeBtn}
         type="button"
         onClick={onClose}
         aria-label="닫기"

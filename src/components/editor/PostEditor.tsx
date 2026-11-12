@@ -44,7 +44,7 @@ const toEditorPlaces = (post?: PostDetailResponse): EditorPlace[] =>
     subCategoryId: p.subCategoryId ?? undefined,
     memo: p.memo ?? "",
     visitedAt: p.visitedAt ?? "",
-    images: p.images,
+    images: p.images ?? [],
     files: [],
   }));
 
