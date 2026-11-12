@@ -11,7 +11,7 @@ import { LogoMark } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-// 원본 loginAndJoin.jsp: 'Login | Join' 탭 하나에 로그인·회원가입
+// 원본 loginAndJoin.jsp 처럼 한 화면에 로그인 · 회원가입 탭
 // 원본의 아이디·비밀번호 찾기는 BE 기능이 없어서 뺌. 원본 ID 대신 지금 BE 는 이메일로 로그인
 
 function LoginForm() {
@@ -172,7 +172,11 @@ function LoginAndJoin() {
             type="button"
             role="tab"
             aria-selected={tab === t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              // 탭을 옮기면 '가입 완료' 안내는 한 번 보여준 걸로 끝냄
+              setJoined(false);
+            }}
             className={cn(
               "h-9 rounded-lg text-sm font-medium transition-colors",
               tab === t ? "bg-secondary text-foreground" : "text-ink-2 hover:text-foreground"
@@ -183,7 +187,7 @@ function LoginAndJoin() {
         ))}
       </div>
       {joined && tab === "login" && (
-        <p className="mb-6 rounded-[10px] bg-secondary px-4 py-3 text-sm">
+        <p role="status" className="mb-6 rounded-[10px] bg-secondary px-4 py-3 text-sm">
           가입이 완료됐어요. 로그인해 주세요.
         </p>
       )}
