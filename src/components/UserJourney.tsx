@@ -18,7 +18,14 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
   // 내 페이지는 공개 전 글까지, 다른 사람 페이지는 공개 글만
   const publicPosts = useUserPosts(userId, !mine);
   const myPosts = useMyPosts(mine);
-  const { data: posts, isLoading, isError: postsError } = mine ? myPosts : publicPosts;
+  const {
+    data: posts,
+    isLoading,
+    isError: postsError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = mine ? myPosts : publicPosts;
   const [hover, setHover] = useState<number>();
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -27,11 +34,11 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
   if (isError)
     return <p className="py-16 text-center text-destructive">{getErrorMessage(error)}</p>;
 
-  const list = posts?.content ?? [];
+  const list = posts?.pages.flatMap((pg) => pg.content) ?? [];
   const trips = list.filter((p) => (p.places ?? []).length > 0);
   const placeCount = trips.reduce((n, p) => n + p.places!.length, 0);
   const cityCount = new Set(list.map((p) => p.cityName)).size;
-  const total = posts ? pageInfo(posts).totalElements : 0;
+  const total = posts?.pages[0] ? pageInfo(posts.pages[0]).totalElements : 0;
 
   const share = async () => {
     const url = `${window.location.origin}/users/${userId}`;
@@ -131,6 +138,18 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
               </div>
             ))}
           </div>
+          {hasNextPage && (
+            <div className="mt-12 flex justify-center">
+              <button
+                type="button"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className={buttonClass.ghost}
+              >
+                {isFetchingNextPage ? "불러오는 중" : `더 보기 (${list.length} / ${total})`}
+              </button>
+            </div>
+          )}
         </section>
       </div>
     </>
