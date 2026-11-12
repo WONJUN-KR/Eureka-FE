@@ -69,6 +69,7 @@ export function inSouthKorea({
   latitude: number;
   longitude: number;
 }) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   if (lat < 33 || lat > 38.65 || lng < 124.5 || lng > 132) return false;
   // 울산 남쪽 바다 건너는 규슈 · 혼슈 끝 (부산 · 울산은 동경 129.4 안쪽)
   if (lat < 35.6 && lng > 129.6) return false;
