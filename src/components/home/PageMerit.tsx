@@ -1,54 +1,32 @@
-import { BadgePercent, Compass, Flag } from "lucide-react";
-
-// 원본 pageMerit.jsp: 서비스 장점 3개 (문구 그대로). 원본 일러스트 PNG 대신 아이콘
+// 서비스로 할 수 있는 일 3가지 - 상자 · 아이콘 없이 글만
+// 원본의 '제휴 할인' 문구는 실제 제휴가 없어서 뺌
 const MERITS = [
   {
-    Icon: Flag,
-    tone: "bg-amber-100 text-amber-600",
-    title: "오늘은 내가 투어가이드!",
-    text: ["혼자 즐기기 아쉬운 스팟을 공유해주세요!", "당신의 센스에 모두 감탄할거에요!"],
+    step: "남기기",
+    title: "들른 곳을 순서대로 남겨요",
+    text: "어디서 놀고 먹고 쉬었는지, 사진과 한 줄 메모로",
   },
   {
-    Icon: Compass,
-    tone: "bg-sky-100 text-sky-600",
-    title: "처음 방문하는 곳도 나의 홈 그라운드!",
-    text: [
-      "새로운 지역에 방문하신다면 가이드들의 픽을",
-      "지도 삼아 즐겨보세요! 복잡한 여행 계획은 NO!",
-    ],
+    step: "따라가기",
+    title: "다른 사람의 여행을 따라가요",
+    text: "지역과 테마로 찾고, 지도 위 경로 그대로 다녀오기",
   },
   {
-    Icon: BadgePercent,
-    tone: "bg-rose-100 text-rose-600",
-    title: "유레카에서 할인받자!",
-    text: [
-      "유레카는 주기적으로 제휴를 맺어",
-      "프로모션을 진행중이에요.",
-      "여행을 계획할 땐 유레카를 통해!",
-    ],
+    step: "먹기",
+    title: "맛집가자, 이번 주말 어디 갈까?",
+    text: "한식부터 카페까지 여행지 맛집 모음",
   },
 ];
 
 export default function PageMerit() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16">
-      <ul className="grid gap-12 text-center md:grid-cols-3">
+    <section className="mx-auto max-w-6xl px-4 md:px-8">
+      <ul className="grid gap-8 border-b py-14 md:grid-cols-3 md:gap-12">
         {MERITS.map((m) => (
-          <li key={m.title} className="flex flex-col items-center">
-            <span
-              aria-hidden
-              className={`mb-8 flex size-32 items-center justify-center rounded-full md:size-40 ${m.tone}`}
-            >
-              <m.Icon strokeWidth={1.5} className="size-14 md:size-16" />
-            </span>
-            <h2 className="mb-6 text-xl font-bold">{m.title}</h2>
-            <p className="text-[17px] font-medium leading-7 text-neutral-500">
-              {m.text.map((line) => (
-                <span key={line} className="block">
-                  {line}
-                </span>
-              ))}
-            </p>
+          <li key={m.step}>
+            <p className="mb-3 text-[13px] font-medium text-muted-foreground">{m.step}</p>
+            <h2 className="mb-1.5 text-[17px] font-medium">{m.title}</h2>
+            <p className="text-[15px] text-ink-2">{m.text}</p>
           </li>
         ))}
       </ul>
