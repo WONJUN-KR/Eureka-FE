@@ -1,58 +1,37 @@
-import { Facebook, Instagram, Twitter } from "lucide-react";
-import Image from "next/image";
+"use client";
+
 import Link from "next/link";
 
-// 원본 footer.jsp: 메뉴 줄 · 구분선 + 저작권 · 로고와 SNS 아이콘
-const MENU = [
-  { href: "/", label: "Home" },
-  { href: "/posts", label: "전체 글" },
-  { href: "/posts/new", label: "글쓰기" },
-  { href: "/mypage", label: "마이페이지" },
-];
-const SNS = [
-  { href: "https://www.facebook.com/", Icon: Facebook, alt: "페이스북" },
-  { href: "https://www.instagram.com/", Icon: Instagram, alt: "인스타그램" },
-  { href: "https://twitter.com/", Icon: Twitter, alt: "트위터" },
-];
+import { useCategories } from "@/api/queries";
 
+// 원본 footer.jsp: 메뉴 줄 · 저작권 · 로고 - 원본의 SNS 아이콘은 실제 계정이 없어서 뺌
+// 카테고리 링크는 헤더처럼 API 에서 받아서 id · 이름을 맞춤
 export default function Footer() {
+  const { data: categories } = useCategories();
   return (
-    <footer className="mt-20 bg-neutral-200">
-      <div className="mx-auto max-w-6xl px-4">
-        <ul className="flex flex-wrap justify-center gap-x-10 gap-y-2 pb-6 pt-12">
-          {MENU.map((m) => (
-            <li key={m.href}>
-              <Link href={m.href} className="text-neutral-500 hover:text-neutral-800">
-                {m.label}
+    <footer className="mt-24 border-t">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted-foreground md:flex-row md:items-start md:justify-between md:px-8">
+        <div>
+          <p className="mb-2 font-serif text-lg text-foreground">유레카</p>
+          <p>여행의 발견, 유레카</p>
+          <p className="mt-1">&copy; 유레카</p>
+        </div>
+        <nav aria-label="푸터 메뉴">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+            {categories?.map((c) => (
+              <li key={c.id}>
+                <Link href={`/posts?categoryId=${c.id}`} className="hover:text-foreground">
+                  {c.name}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href="/posts/new" className="hover:text-foreground">
+                글쓰기
               </Link>
             </li>
-          ))}
-        </ul>
-        <hr className="mx-auto max-w-4xl border-neutral-800" />
-        <p className="py-6 text-center text-sm text-neutral-500">&copy; 유레카</p>
-        <div className="flex items-center justify-between pb-8">
-          <Image
-            src="/images/footerImages/logo.png"
-            alt="유레카"
-            width={144}
-            height={72}
-            className="h-auto w-28 md:w-36"
-          />
-          <div className="flex gap-4">
-            {SNS.map((s) => (
-              <a
-                key={s.alt}
-                href={s.href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={s.alt}
-                className="text-neutral-600 hover:text-neutral-900"
-              >
-                <s.Icon aria-hidden strokeWidth={1.75} className="size-7" />
-              </a>
-            ))}
-          </div>
-        </div>
+          </ul>
+        </nav>
       </div>
     </footer>
   );

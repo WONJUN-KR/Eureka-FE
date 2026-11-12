@@ -47,7 +47,7 @@ function BoardList() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-24 md:pt-32">
-      <h1 className="mb-6 text-center text-3xl font-bold">전체 글</h1>
+      <h1 className="mb-6 text-center font-serif text-3xl tracking-tight">전체 글</h1>
       <div
         className="mx-auto mb-10 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4"
         aria-label="게시글 필터"
@@ -175,10 +175,11 @@ function BoardList() {
 function BoardListFallback() {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-24 md:pt-32" aria-busy="true">
-      <h1 className="mb-6 text-center text-3xl font-bold">전체 글</h1>
+      <h1 className="mb-6 text-center font-serif text-3xl tracking-tight">전체 글</h1>
       <div className="mx-auto mb-10 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* 실제 select 와 같은 클래스로 그려서 높이를 맞춤 */}
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="h-[38px] rounded-md border border-input bg-neutral-50" />
+          <select key={i} disabled aria-hidden tabIndex={-1} className={inputClass} />
         ))}
       </div>
       <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
