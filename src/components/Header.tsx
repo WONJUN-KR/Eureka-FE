@@ -149,7 +149,7 @@ export default function Header() {
                 name="keyword"
                 type="search"
                 aria-label="여행 기록 검색"
-                placeholder="제목 · 본문 · 장소"
+                placeholder="제목 · 본문 · 장소 이름"
                 autoFocus
                 onBlur={(e) => !e.currentTarget.value && setSearchOpen(false)}
                 onKeyDown={(e) => e.key === "Escape" && closeSearch()}
@@ -327,18 +327,23 @@ export default function Header() {
         >
           <form
             role="search"
-            className="pt-3"
+            className="relative mt-3"
             onSubmit={(e) => {
               e.preventDefault();
               search(e.currentTarget);
             }}
           >
+            <Search
+              aria-hidden
+              className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              strokeWidth={1.5}
+            />
             <input
               name="keyword"
               type="search"
               aria-label="여행 기록 검색"
-              placeholder="제목 · 본문 · 장소로 찾기"
-              className={inputClass}
+              placeholder="제목 · 본문 · 장소 이름"
+              className={cn(inputClass, "pl-10")}
             />
           </form>
           <p className="pb-1 pt-3 text-sm text-muted-foreground">카테고리</p>
