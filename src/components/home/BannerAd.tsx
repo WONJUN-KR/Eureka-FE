@@ -18,7 +18,7 @@ const ADS = [
   },
   {
     href: "/posts",
-    title: "다른 사람의 발자취 따라가기",
+    title: "다른 사람의 여행 따라가기",
     text: "지역과 테마로 여행 기록을 찾아보세요",
     Icon: MapPinned,
     tone: "from-emerald-500 to-teal-400",
