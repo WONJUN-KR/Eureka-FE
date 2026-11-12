@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 
 import { useCategories, useCities, usePosts, useRegions, useSubCategories } from "@/api/queries";
 import { pageInfo } from "@/api/types";
@@ -20,10 +20,17 @@ const SORTS = [
 ];
 const PAGE_SIZE = 9;
 const selectClass = cn(inputClass, "h-10 py-0 pr-8 text-sm");
+const noop = () => () => {};
 
 function BoardList() {
   const router = useRouter();
   const pathname = usePathname();
+  // 헤더 · 푸터가 같은 쿼리를 먼저 받아오면 hydration 시점에 서버 HTML 과 달라짐 -> 마운트 전엔 대체 화면
+  const mounted = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false
+  );
   const sp = useSearchParams();
   const regionId = num(sp.get("regionId"));
   const cityId = num(sp.get("cityId"));
@@ -62,7 +69,9 @@ function BoardList() {
   const subCategory = subCategories?.find((s) => s.id === subCategoryId);
   const region = regions?.find((r) => r.id === regionId);
   const city = cities?.find((c) => c.id === cityId);
-  const place = city?.name ?? region?.name;
+  // 도시만 받은 주소(?cityId=)는 도시 목록을 못 불러옴 -> 이름 대신 선택 상태만
+  const place =
+    city?.name ?? region?.name ?? (cityId != null && regionId == null ? "선택한 도시" : undefined);
   const topic = subCategory?.name ?? category?.name;
   const filters = [place, topic].filter(Boolean).join(" · ");
   const title = keyword ? `'${keyword}' 검색 결과` : filters || "전체 글";
@@ -76,6 +85,7 @@ function BoardList() {
   // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
   const unknownSub = subCategoryId != null && !subCategory;
 
+  if (!mounted) return <BoardListFallback chips={categoryId != null} />;
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -103,7 +113,7 @@ function BoardList() {
         </select>
       </div>
 
-      {/* 검색어 - 주소의 keyword 가 바뀌면 칸도 새 값으로 (key) */}
+      {/* 지금 고른 조건 안에서 찾기 - 칸 글자는 위에서 주소의 keyword 와 맞춰 둠 */}
       <form
         role="search"
         className="relative mb-4 md:max-w-2xl"
@@ -277,15 +287,19 @@ function BoardList() {
 }
 
 // 서버 HTML 에선 Suspense 대체 화면이 먼저 그려짐 - 제목 · 필터 · 카드 자리를 같은 크기로 미리 잡아둠 (CLS)
-function BoardListFallback() {
+function BoardListFallback({ chips = false }: { chips?: boolean }) {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32" aria-busy="true">
       <div className="mb-8 h-[76px] md:h-[86px]" />
-      <div className="mb-14 grid grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-2xl">
+      {/* 검색칸 자리 */}
+      <div className="mb-4 h-10 rounded-[10px] border bg-card md:max-w-2xl" />
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-2xl">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="h-10 rounded-[10px] border bg-card" />
         ))}
       </div>
+      {/* 실제 화면과 같은 칩 행 자리 - 카테고리를 고른 주소면 칩 한 줄 높이까지 */}
+      <div className={chips ? "mb-10 h-9" : "mb-10"} />
       <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: PAGE_SIZE }, (_, i) => (
           <PostCardSkeleton key={i} />

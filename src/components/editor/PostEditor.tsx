@@ -32,7 +32,8 @@ const MAX_POST_PHOTOS = 30;
 let tempKey = 0;
 const newKey = () => `new-${++tempKey}`;
 
-const toEditorPlaces = (post?: PostDetailResponse): EditorPlace[] =>
+// 장소 사진이 상세 응답에 안 실려 오면 글 사진 목록에서 placeId 로 찾아 채움
+const toEditorPlaces = (post?: PostDetailResponse, images: ImageResponse[] = []): EditorPlace[] =>
   (post?.places ?? []).map((p) => ({
     key: `id-${p.id}`,
     id: p.id,
@@ -44,7 +45,7 @@ const toEditorPlaces = (post?: PostDetailResponse): EditorPlace[] =>
     subCategoryId: p.subCategoryId ?? undefined,
     memo: p.memo ?? "",
     visitedAt: p.visitedAt ?? "",
-    images: p.images,
+    images: p.images ?? images.filter((x) => x.placeId === p.id),
     files: [],
   }));
 
@@ -82,7 +83,7 @@ export default function PostEditor({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [summary, setSummary] = useState(initial?.summary ?? "");
   const [content, setContent] = useState(initial?.content ?? "");
-  const [places, setPlaces] = useState<EditorPlace[]>(() => toEditorPlaces(initial));
+  const [places, setPlaces] = useState<EditorPlace[]>(() => toEditorPlaces(initial, initialImages));
   const [postImages, setPostImages] = useState(initialImages.filter((i) => i.placeId == null));
   const [postFiles, setPostFiles] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
@@ -155,7 +156,8 @@ export default function PostEditor({
       subCategoryId: subCategoryId!,
       title: title.trim(),
       content,
-      summary: summary.trim() || undefined,
+      // 수정은 빈 값을 보내야 기존 요약이 지워짐 (안 보내면 그대로 둠)
+      summary: editing ? summary.trim() : summary.trim() || undefined,
       places: places.map(toRequest),
     };
     let saved: PostDetailResponse;
@@ -174,7 +176,14 @@ export default function PostEditor({
     let failed = 0;
     for (const f of postFiles) await uploadImage(saved.id, f).catch(() => failed++);
     // 저장된 장소를 보낸 순서로 맞춰서 사진을 붙임 - 개수가 다르면 엉뚱한 장소에 붙지 않게 장소 사진은 건너뜀
-    const savedPlaces = [...(saved.places ?? [])].sort((a, b) => a.seq - b.seq);
+    // 저장 응답에 장소가 안 실려 오면 상세를 다시 받아서 장소 id 를 확인
+    const placeList =
+      saved.places ??
+      (await get<PostDetailResponse>(ENDPOINTS.POSTS.DETAIL(saved.id))
+        .then((d) => d.places)
+        .catch(() => undefined)) ??
+      [];
+    const savedPlaces = [...placeList].sort((a, b) => a.seq - b.seq);
     const placesMatch = savedPlaces.length === places.length;
     for (const [i, p] of places.entries()) {
       for (const f of p.files) {
@@ -278,8 +287,9 @@ export default function PostEditor({
       )}
 
       {step === 2 && (
-        // form 이 아니라 div - 장소 검색 · 메모 칸에서 Enter 를 눌러도 글이 저장되지 않게 (저장은 버튼으로만)
-        <div className="flex flex-col gap-10">
+        // form 이 아니라 fieldset - 장소 검색 · 메모 칸에서 Enter 를 눌러도 글이 저장되지 않게 (저장은 버튼으로만)
+        // 저장하는 동안엔 입력 · 취소를 막음 - 보낸 뒤 고친 내용이 사라지거나 취소 후 상세로 튀지 않게
+        <fieldset disabled={saving} className="flex min-w-0 flex-col gap-10">
           <button
             type="button"
             onClick={() => setStep(1)}
@@ -403,7 +413,7 @@ export default function PostEditor({
               </button>
             </div>
           </div>
-        </div>
+        </fieldset>
       )}
     </div>
   );
