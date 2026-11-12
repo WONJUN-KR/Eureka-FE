@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useSyncExternalStore } from "react";
 
 import { useCategories, useCities, usePosts, useRegions, useSubCategories } from "@/api/queries";
 import { pageInfo } from "@/api/types";
@@ -20,10 +20,17 @@ const SORTS = [
 ];
 const PAGE_SIZE = 9;
 const selectClass = cn(inputClass, "h-10 py-0 pr-8 text-sm");
+const noop = () => () => {};
 
 function BoardList() {
   const router = useRouter();
   const pathname = usePathname();
+  // 헤더 · 푸터가 같은 쿼리를 먼저 받아오면 hydration 시점에 서버 HTML 과 달라짐 -> 마운트 전엔 대체 화면
+  const mounted = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false
+  );
   const sp = useSearchParams();
   const regionId = num(sp.get("regionId"));
   const cityId = num(sp.get("cityId"));
@@ -66,6 +73,7 @@ function BoardList() {
   // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
   const unknownSub = subCategoryId != null && !subCategory;
 
+  if (!mounted) return <BoardListFallback />;
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
