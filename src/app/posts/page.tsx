@@ -1,8 +1,8 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useSyncExternalStore } from "react";
+import { Suspense, useState } from "react";
 
 import { useCategories, useCities, usePosts, useRegions, useSubCategories } from "@/api/queries";
 import { pageInfo } from "@/api/types";
@@ -36,6 +36,7 @@ function BoardList() {
   const cityId = num(sp.get("cityId"));
   const categoryId = num(sp.get("categoryId"));
   const subCategoryId = num(sp.get("subCategoryId"));
+  const keyword = sp.get("keyword")?.trim() || undefined;
   const sort = SORTS.find((s) => s.value === sp.get("sort"))?.value ?? SORTS[0].value;
   const page = num(sp.get("page")) ?? 0;
 
@@ -48,6 +49,7 @@ function BoardList() {
     cityId,
     categoryId,
     subCategoryId,
+    keyword,
     page,
     size: PAGE_SIZE,
     // 좋아요 · 조회 수가 같은 글이 많아서 글 번호로 한 번 더 정렬 - 페이지가 바뀔 때 겹치거나 빠지지 않게
@@ -71,7 +73,15 @@ function BoardList() {
   const place =
     city?.name ?? region?.name ?? (cityId != null && regionId == null ? "선택한 도시" : undefined);
   const topic = subCategory?.name ?? category?.name;
-  const title = [place, topic].filter(Boolean).join(" · ") || "전체 글";
+  const filters = [place, topic].filter(Boolean).join(" · ");
+  const title = keyword ? `'${keyword}' 검색 결과` : filters || "전체 글";
+  // 검색칸 글자는 직접 들고 있고, 주소의 검색어가 바뀌면(뒤로 가기 등) 렌더 중에 맞춤 - 다시 그려도 포커스 유지
+  const [text, setText] = useState(keyword ?? "");
+  const [lastKeyword, setLastKeyword] = useState(keyword);
+  if (keyword !== lastKeyword) {
+    setLastKeyword(keyword);
+    setText(keyword ?? "");
+  }
   // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
   const unknownSub = subCategoryId != null && !subCategory;
 
@@ -84,7 +94,9 @@ function BoardList() {
             {title}
           </h1>
           <p className="mt-2 text-[15px] tabular-nums text-ink-2">
-            {info ? `${info.totalElements}개의 여행 기록` : "\u00a0"}
+            {info
+              ? `${keyword && filters ? `${filters} 안에서 ` : ""}${info.totalElements}개의 여행 기록`
+              : "\u00a0"}
           </p>
         </div>
         <select
@@ -100,6 +112,35 @@ function BoardList() {
           ))}
         </select>
       </div>
+
+      {/* 검색어 - 주소의 keyword 가 바뀌면 칸도 새 값으로 (key) */}
+      <form
+        role="search"
+        className="relative mb-4 md:max-w-2xl"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setParams({ keyword: text.trim() || undefined });
+        }}
+      >
+        <Search
+          aria-hidden
+          className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          strokeWidth={1.5}
+        />
+        <input
+          name="keyword"
+          type="search"
+          aria-label="여행 기록 검색"
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            // 칸의 지우기(x)로 비우면 검색도 바로 풀림
+            if (!e.target.value && keyword) setParams({ keyword: undefined });
+          }}
+          placeholder="제목 · 본문 · 들른 장소 이름으로 찾기"
+          className={cn(inputClass, "h-10 py-0 pl-10 text-sm")}
+        />
+      </form>
 
       {/* 세부 테마는 칩으로 바로 고르고, 지역 · 도시 · 카테고리는 선택 상자 */}
       <div
@@ -186,10 +227,14 @@ function BoardList() {
 
       <section aria-live="polite">
         {isError && (
-          <p className="py-16 text-center text-destructive">게시글을 불러오지 못했어요.</p>
+          <p className="py-16 text-center text-destructive">게시글을 불러오지 못했어요</p>
         )}
         {data && data.content.length === 0 && (
-          <p className="py-16 text-center text-ink-2">아직 이 조건의 글이 없어요.</p>
+          <p className="py-16 text-center text-ink-2">
+            {keyword
+              ? `'${keyword}'(이)가 들어간 여행 기록이 없어요`
+              : "아직 이 조건의 글이 없어요"}
+          </p>
         )}
         <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading && Array.from({ length: PAGE_SIZE }, (_, i) => <PostCardSkeleton key={i} />)}

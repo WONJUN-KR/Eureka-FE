@@ -1,13 +1,13 @@
 "use client";
 
-import { Menu, PenLine, X } from "lucide-react";
+import { Menu, PenLine, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCategories, useCities, useRegions, useSubCategories } from "@/api/queries";
 import type { CityResponse } from "@/api/types";
-import { buttonClass } from "@/components/ui/field";
+import { buttonClass, inputClass } from "@/components/ui/field";
 import Logo from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -23,6 +23,8 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [openTab, setOpenTab] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchButton = useRef<HTMLButtonElement>(null);
   const [hoverRegion, setHoverRegion] = useState<number>();
   // 고른 도시와 그 시·도 - 목록 화면에서 지역 · 도시 선택 상자가 같이 채워지게 둘 다 넘김
   const [pickedCity, setPickedCity] = useState<(CityResponse & { regionId?: number }) | null>(null);
@@ -58,6 +60,7 @@ export default function Header() {
     setLastPath(pathname);
     setOpenTab(null);
     setMobileOpen(false);
+    setSearchOpen(false);
   }
 
   const solid = !isHome || scrolled || openTab !== null || mobileOpen;
@@ -66,12 +69,27 @@ export default function Header() {
     ...(categories ?? []).map((c) => ({ key: `cat-${c.id}`, label: c.name })),
   ];
 
-  const goList = (params: Record<string, number | undefined>) => {
+  const goList = (params: Record<string, number | string | undefined>) => {
     const q = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => v != null && q.set(k, String(v)));
     setOpenTab(null);
     setMobileOpen(false);
+    setSearchOpen(false);
     router.push(`/posts${q.size ? `?${q}` : ""}`);
+  };
+
+  // 헤더 검색은 사이트 전체에서 찾기 - 고른 도시도 풀어서 '지역' 탭 이름과 결과가 어긋나지 않게
+  // (지금 목록 조건 안에서 찾기는 목록 화면의 검색칸)
+  const search = (form: HTMLFormElement) => {
+    const q = String(new FormData(form).get("keyword") ?? "").trim();
+    if (!q) return;
+    setPickedCity(null);
+    goList({ keyword: q });
+  };
+  const closeSearch = () => {
+    setSearchOpen(false);
+    // 닫힌 검색칸 대신 검색 버튼으로 포커스를 돌려줌
+    requestAnimationFrame(() => searchButton.current?.focus());
   };
 
   const quiet = solid ? "text-ink-2 hover:text-foreground" : "text-white/85 hover:text-white";
@@ -119,6 +137,36 @@ export default function Header() {
             !isHydrated && "invisible"
           )}
         >
+          {searchOpen ? (
+            <form
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                search(e.currentTarget);
+              }}
+            >
+              <input
+                name="keyword"
+                type="search"
+                aria-label="여행 기록 검색"
+                placeholder="제목 · 본문 · 장소"
+                autoFocus
+                onBlur={(e) => !e.currentTarget.value && setSearchOpen(false)}
+                onKeyDown={(e) => e.key === "Escape" && closeSearch()}
+                className={cn(inputClass, "h-9 w-56 py-0 text-sm text-foreground")}
+              />
+            </form>
+          ) : (
+            <button
+              ref={searchButton}
+              type="button"
+              aria-label="검색"
+              onClick={() => setSearchOpen(true)}
+              className={quiet}
+            >
+              <Search className="size-[18px]" strokeWidth={1.5} />
+            </button>
+          )}
           <Link href={loggedIn ? "/posts/new" : "/login"} className={quiet}>
             글쓰기
           </Link>
@@ -277,6 +325,22 @@ export default function Header() {
           className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t bg-background px-4 pb-6 pt-2 md:hidden"
           aria-label="휴대폰 메뉴"
         >
+          <form
+            role="search"
+            className="pt-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              search(e.currentTarget);
+            }}
+          >
+            <input
+              name="keyword"
+              type="search"
+              aria-label="여행 기록 검색"
+              placeholder="제목 · 본문 · 장소로 찾기"
+              className={inputClass}
+            />
+          </form>
           <p className="pb-1 pt-3 text-sm text-muted-foreground">카테고리</p>
           <ul>
             {categories?.map((c) => (
