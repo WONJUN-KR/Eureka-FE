@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -8,12 +7,12 @@ import { useLogin, useSignup } from "@/api/mutations";
 import { getErrorMessage } from "@/api/request";
 import type { Gender, SignupRequest } from "@/api/types";
 import { ErrorText, Field, inputClass, SubmitButton } from "@/components/ui/field";
+import { LogoMark } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-// 원본 loginAndJoin.jsp: 'Login | Join' 탭 하나에 로그인·회원가입, 로그인 쪽 아래에 검은 로고
+// 원본 loginAndJoin.jsp 처럼 한 화면에 로그인 · 회원가입 탭
 // 원본의 아이디·비밀번호 찾기는 BE 기능이 없어서 뺌. 원본 ID 대신 지금 BE 는 이메일로 로그인
-const BLUE = "rgb(6,119,207)";
 
 function LoginForm() {
   const router = useRouter();
@@ -36,7 +35,7 @@ function LoginForm() {
           }
         );
       }}
-      className="mx-auto flex max-w-sm flex-col gap-4"
+      className="flex flex-col gap-4"
     >
       <Field label="이메일" htmlFor="email">
         <input
@@ -61,14 +60,7 @@ function LoginForm() {
         />
       </Field>
       <ErrorText message={mutation.isError ? getErrorMessage(mutation.error) : null} />
-      <SubmitButton pending={mutation.isPending}>로 그 인</SubmitButton>
-      <Image
-        src="/images/headerImages/blackLogo.png"
-        alt=""
-        width={160}
-        height={80}
-        className="mx-auto mt-6 h-auto w-40 opacity-80"
-      />
+      <SubmitButton pending={mutation.isPending}>로그인</SubmitButton>
     </form>
   );
 }
@@ -91,7 +83,7 @@ function JoinForm({ onDone }: { onDone: () => void }) {
         e.preventDefault();
         mutation.mutate(form, { onSuccess: onDone });
       }}
-      className="mx-auto flex max-w-sm flex-col gap-4"
+      className="flex flex-col gap-4"
     >
       <Field label="이메일" htmlFor="joinEmail">
         <input
@@ -152,7 +144,7 @@ function JoinForm({ onDone }: { onDone: () => void }) {
         </Field>
       </div>
       <ErrorText message={mutation.isError ? getErrorMessage(mutation.error) : null} />
-      <SubmitButton pending={mutation.isPending}>회 원 가 입</SubmitButton>
+      <SubmitButton pending={mutation.isPending}>가입하기</SubmitButton>
     </form>
   );
 }
@@ -163,45 +155,52 @@ function LoginAndJoin() {
   const [joined, setJoined] = useState(false);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-8 pt-24 md:pt-32">
-      <div className="flex pl-0 md:pl-8" role="tablist">
+    <div className="mx-auto max-w-md px-4 pb-8 pt-28 md:pt-36">
+      <LogoMark className="mb-6 h-10 w-auto text-primary" />
+      <h1 className="mb-2 font-serif text-[32px] leading-tight tracking-tight">
+        {tab === "login" ? "로그인" : "회원가입"}
+      </h1>
+      <p className="mb-8 text-[15px] text-ink-2">
+        {tab === "login"
+          ? "로그인하고 다녀온 곳을 남겨 보세요"
+          : "가입하면 내 유레카 페이지가 생겨요"}
+      </p>
+      <div className="mb-8 grid grid-cols-2 rounded-[10px] border bg-card p-1" role="tablist">
         {(["login", "join"] as const).map((t) => (
           <button
             key={t}
             type="button"
             role="tab"
             aria-selected={tab === t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              // 탭을 옮기면 '가입 완료' 안내는 한 번 보여준 걸로 끝냄
+              setJoined(false);
+            }}
             className={cn(
-              "h-16 w-36 border border-b-0 font-bold md:h-20 md:w-48",
-              tab === t ? "bg-neutral-50 text-xl" : "bg-white text-neutral-500"
+              "h-9 rounded-lg text-sm font-medium transition-colors",
+              tab === t ? "bg-secondary text-foreground" : "text-ink-2 hover:text-foreground"
             )}
-            style={tab === t ? { borderTop: `2px solid ${BLUE}` } : undefined}
           >
-            {t === "login" ? "Login" : "Join"}
+            {t === "login" ? "로그인" : "회원가입"}
           </button>
         ))}
       </div>
-      <div
-        className="border border-t-0 border-b-black bg-neutral-50 px-4 py-12"
-        style={{ borderBottomWidth: 2 }}
-      >
-        {joined && tab === "login" && (
-          <p className="mb-6 text-center text-sm" style={{ color: BLUE }}>
-            가입이 완료됐어요. 로그인해주세요.
-          </p>
-        )}
-        {tab === "login" ? (
-          <LoginForm />
-        ) : (
-          <JoinForm
-            onDone={() => {
-              setJoined(true);
-              setTab("login");
-            }}
-          />
-        )}
-      </div>
+      {joined && tab === "login" && (
+        <p role="status" className="mb-6 rounded-[10px] bg-secondary px-4 py-3 text-sm">
+          가입이 완료됐어요. 로그인해 주세요.
+        </p>
+      )}
+      {tab === "login" ? (
+        <LoginForm />
+      ) : (
+        <JoinForm
+          onDone={() => {
+            setJoined(true);
+            setTab("login");
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -209,7 +208,7 @@ function LoginAndJoin() {
 export default function LoginPage() {
   return (
     // 대체 화면을 탭+폼 높이로 잡아 탭이 들어올 때 푸터가 밀리지 않게 (CLS)
-    <Suspense fallback={<div className="mx-auto min-h-[760px] max-w-3xl px-4 pt-24 md:pt-32" />}>
+    <Suspense fallback={<div className="mx-auto min-h-[640px] max-w-md px-4 pt-28 md:pt-36" />}>
       <LoginAndJoin />
     </Suspense>
   );

@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useCategories, useCities, useRegions, useSubCategories } from "@/api/queries";
 import type { CityResponse } from "@/api/types";
 import { buttonClass } from "@/components/ui/field";
+import Logo from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -86,12 +87,10 @@ export default function Header() {
       <header className="mx-auto flex h-16 max-w-6xl items-center gap-10 px-4 md:px-8">
         <Link
           href="/"
-          className={cn(
-            "font-serif text-[22px] tracking-tight",
-            solid ? "text-foreground" : "text-white"
-          )}
+          aria-label="유레카 홈"
+          className={cn("text-[22px]", solid ? "text-primary" : "text-white")}
         >
-          유레카
+          <Logo />
         </Link>
         <nav className="hidden md:block" aria-label="주 메뉴">
           <ul className="flex gap-7">
