@@ -55,15 +55,6 @@ export function useUpdatePost(id: number) {
   });
 }
 
-export function useUpdatePost(id: number) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (body: UpdatePostRequest) =>
-      patch<PostDetailResponse>(ENDPOINTS.POSTS.UPDATE(id), body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.posts.all }),
-  });
-}
-
 export function useDeletePost() {
   const qc = useQueryClient();
   return useMutation({
