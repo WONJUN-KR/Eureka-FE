@@ -183,6 +183,12 @@ export default function PostDetailPage() {
             </Link>
             {isMine && (
               <div className="ml-auto flex gap-2">
+                <Link
+                  href={`/posts/${post.id}/edit`}
+                  className={cn(buttonClass.ghost, "h-9 px-3.5 text-sm")}
+                >
+                  수정
+                </Link>
                 <button
                   type="button"
                   onClick={() => {
