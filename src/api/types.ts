@@ -112,7 +112,8 @@ export interface PostListParams {
   subCategoryId?: number;
   page?: number;
   size?: number;
-  sort?: string;
+  // 여러 개면 앞에서부터 정렬 기준 (sort=likeCount,desc&sort=id,desc)
+  sort?: string | string[];
 }
 
 export interface RegionResponse {

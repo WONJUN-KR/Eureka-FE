@@ -10,9 +10,16 @@ import PostCard, { PostCardSkeleton } from "@/components/PostCard";
 import { inputClass } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 
-// 원본 boardList.jsp: 헤더 메뉴(지역·테마)에서 고른 조건으로 3칸 사진 목록
-// 조건은 주소(?cityId=&subCategoryId=)에 둬서 헤더 메뉴·추천 도시·새로고침 모두 같은 화면
+// 원본 boardList.jsp: 헤더 메뉴(지역·테마)에서 고른 조건으로 3칸 사진 목록 + '최신순' 정렬
+// 조건은 주소(?cityId=&subCategoryId=&sort=)에 둬서 헤더 메뉴·추천 도시·새로고침 모두 같은 화면
 const num = (v: string | null) => (v ? Number(v) : undefined);
+const SORTS = [
+  { value: "createdAt,desc", label: "최신순" },
+  { value: "likeCount,desc", label: "좋아요순" },
+  { value: "viewCount,desc", label: "조회순" },
+];
+const PAGE_SIZE = 9;
+const selectClass = cn(inputClass, "h-10 py-0 pr-8 text-sm");
 
 function BoardList() {
   const router = useRouter();
@@ -22,6 +29,7 @@ function BoardList() {
   const cityId = num(sp.get("cityId"));
   const categoryId = num(sp.get("categoryId"));
   const subCategoryId = num(sp.get("subCategoryId"));
+  const sort = SORTS.find((s) => s.value === sp.get("sort"))?.value ?? SORTS[0].value;
   const page = num(sp.get("page")) ?? 0;
 
   const { data: regions } = useRegions();
@@ -34,27 +42,76 @@ function BoardList() {
     categoryId,
     subCategoryId,
     page,
-    size: 9,
+    size: PAGE_SIZE,
+    // 좋아요 · 조회 수가 같은 글이 많아서 글 번호로 한 번 더 정렬 - 페이지가 바뀔 때 겹치거나 빠지지 않게
+    sort: [sort, "id,desc"],
   });
   const info = data ? pageInfo(data) : null;
 
-  const setParams = (next: Record<string, number | undefined>) => {
+  const setParams = (next: Record<string, number | string | undefined>) => {
     const q = new URLSearchParams(sp.toString());
     Object.entries(next).forEach(([k, v]) => (v == null ? q.delete(k) : q.set(k, String(v))));
     if (!("page" in next)) q.delete("page");
     router.push(`${pathname}${q.size ? `?${q}` : ""}`);
   };
 
+  // 제목: 장소(도시 > 시·도) · 주제(세부 테마 > 카테고리), 아무것도 안 골랐으면 전체 글
+  const category = categories?.find((c) => c.id === categoryId);
+  const subCategory = subCategories?.find((s) => s.id === subCategoryId);
+  const region = regions?.find((r) => r.id === regionId);
+  const city = cities?.find((c) => c.id === cityId);
+  const place = city?.name ?? region?.name;
+  const topic = subCategory?.name ?? category?.name;
+  const title = [place, topic].filter(Boolean).join(" · ") || "전체 글";
+  // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
+  const unknownSub = subCategoryId != null && !subCategory;
+
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-8 pt-24 md:pt-32">
-      <h1 className="mb-6 text-center font-serif text-3xl tracking-tight">전체 글</h1>
+    <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[32px] leading-tight tracking-tight md:text-[40px]">
+            {title}
+          </h1>
+          <p className="mt-2 text-[15px] tabular-nums text-ink-2">
+            {info ? `${info.totalElements}개의 여행 기록` : "\u00a0"}
+          </p>
+        </div>
+        <select
+          aria-label="정렬"
+          className={cn(selectClass, "w-auto")}
+          value={sort}
+          onChange={(e) => setParams({ sort: e.target.value })}
+        >
+          {SORTS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* 세부 테마는 칩으로 바로 고르고, 지역 · 도시 · 카테고리는 선택 상자 */}
       <div
-        className="mx-auto mb-10 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4"
+        className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-2xl"
         aria-label="게시글 필터"
       >
         <select
+          aria-label="카테고리"
+          className={selectClass}
+          value={categoryId ?? ""}
+          onChange={(e) => setParams({ categoryId: num(e.target.value), subCategoryId: undefined })}
+        >
+          <option value="">전체 카테고리</option>
+          {categories?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <select
           aria-label="지역"
-          className={inputClass}
+          className={selectClass}
           value={regionId ?? ""}
           onChange={(e) => setParams({ regionId: num(e.target.value), cityId: undefined })}
         >
@@ -67,7 +124,7 @@ function BoardList() {
         </select>
         <select
           aria-label="도시"
-          className={inputClass}
+          className={selectClass}
           value={cityId ?? ""}
           disabled={!regionId && !cityId}
           onChange={(e) => setParams({ cityId: num(e.target.value) })}
@@ -83,47 +140,49 @@ function BoardList() {
             <option value={cityId}>선택한 도시</option>
           )}
         </select>
-        <select
-          aria-label="카테고리"
-          className={inputClass}
-          value={categoryId ?? ""}
-          onChange={(e) => setParams({ categoryId: num(e.target.value), subCategoryId: undefined })}
-        >
-          <option value="">전체 카테고리</option>
-          {categories?.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="세부 테마"
-          className={inputClass}
-          value={subCategoryId ?? ""}
-          disabled={!categoryId && !subCategoryId}
-          onChange={(e) => setParams({ subCategoryId: num(e.target.value) })}
-        >
-          <option value="">전체 테마</option>
-          {subCategories?.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-          {subCategoryId && !subCategories?.some((s) => s.id === subCategoryId) && (
-            <option value={subCategoryId}>선택한 테마</option>
-          )}
-        </select>
       </div>
+      {((subCategories && subCategories.length > 0) || unknownSub) && (
+        <ul className="mb-10 flex flex-wrap gap-2" aria-label="세부 테마">
+          {[
+            { id: undefined, name: "전체" },
+            ...(subCategories ?? []),
+            ...(unknownSub ? [{ id: subCategoryId, name: "선택한 테마" }] : []),
+          ].map((s) => {
+            const on = s.id === subCategoryId;
+            return (
+              <li key={s.id ?? "all"}>
+                <button
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setParams({ subCategoryId: s.id })}
+                  className={cn(
+                    "h-9 rounded-full border px-3.5 text-sm transition-colors",
+                    on
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "bg-card text-ink-2 hover:text-foreground"
+                  )}
+                >
+                  {s.name}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {/* 칩이 없을 때도 같은 높이를 잡아 둠 - 카테고리를 고른 뒤 칩이 들어와도 카드가 밀리지 않게 */}
+      {!subCategories?.length && !unknownSub && (
+        <div className={categoryId ? "mb-10 h-9" : "mb-10"} />
+      )}
 
       <section aria-live="polite">
         {isError && (
           <p className="py-16 text-center text-destructive">게시글을 불러오지 못했어요.</p>
         )}
         {data && data.content.length === 0 && (
-          <p className="py-16 text-center text-neutral-500">아직 이 조건의 글이 없어요.</p>
+          <p className="py-16 text-center text-ink-2">아직 이 조건의 글이 없어요.</p>
         )}
-        <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoading && Array.from({ length: 9 }, (_, i) => <PostCardSkeleton key={i} />)}
+        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoading && Array.from({ length: PAGE_SIZE }, (_, i) => <PostCardSkeleton key={i} />)}
           {data?.content.map((p) => (
             <PostCard key={p.id} post={p} />
           ))}
@@ -131,15 +190,15 @@ function BoardList() {
       </section>
 
       {info && info.totalPages > 1 && (
-        <nav className="mt-12 flex items-center justify-center gap-2" aria-label="페이지">
+        <nav className="mt-14 flex items-center justify-center gap-1" aria-label="페이지">
           <button
             type="button"
             aria-label="이전 페이지"
             disabled={info.number === 0}
             onClick={() => setParams({ page: info.number - 1 })}
-            className="rounded-md border p-2 disabled:opacity-40"
+            className="rounded-lg p-2 text-ink-2 hover:bg-secondary disabled:opacity-40"
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-[18px]" strokeWidth={1.5} />
           </button>
           {Array.from({ length: info.totalPages }, (_, i) => (
             <button
@@ -148,8 +207,10 @@ function BoardList() {
               aria-current={i === info.number ? "page" : undefined}
               onClick={() => setParams({ page: i })}
               className={cn(
-                "min-w-9 rounded-md border px-3 py-1.5 text-sm",
-                i === info.number && "border-neutral-800 bg-neutral-800 text-white"
+                "min-w-9 rounded-lg px-3 py-1.5 text-sm tabular-nums",
+                i === info.number
+                  ? "bg-primary text-primary-foreground"
+                  : "text-ink-2 hover:bg-secondary"
               )}
             >
               {i + 1}
@@ -160,9 +221,9 @@ function BoardList() {
             aria-label="다음 페이지"
             disabled={info.number >= info.totalPages - 1}
             onClick={() => setParams({ page: info.number + 1 })}
-            className="rounded-md border p-2 disabled:opacity-40"
+            className="rounded-lg p-2 text-ink-2 hover:bg-secondary disabled:opacity-40"
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-[18px]" strokeWidth={1.5} />
           </button>
         </nav>
       )}
@@ -170,20 +231,18 @@ function BoardList() {
   );
 }
 
-// 서버 HTML 에선 Suspense 대체 화면이 먼저 그려짐 - 빈 화면이면 목록이 들어올 때 페이지 전체(푸터까지)가 밀려서
-// 제목·필터·카드 자리를 같은 크기로 미리 잡아둠 (CLS)
+// 서버 HTML 에선 Suspense 대체 화면이 먼저 그려짐 - 제목 · 필터 · 카드 자리를 같은 크기로 미리 잡아둠 (CLS)
 function BoardListFallback() {
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-8 pt-24 md:pt-32" aria-busy="true">
-      <h1 className="mb-6 text-center font-serif text-3xl tracking-tight">전체 글</h1>
-      <div className="mx-auto mb-10 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
-        {/* 실제 select 와 같은 클래스로 그려서 높이를 맞춤 */}
-        {Array.from({ length: 4 }, (_, i) => (
-          <select key={i} disabled aria-hidden tabIndex={-1} className={inputClass} />
+    <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32" aria-busy="true">
+      <div className="mb-8 h-[76px] md:h-[86px]" />
+      <div className="mb-14 grid grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-2xl">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={i} className="h-10 rounded-[10px] border bg-card" />
         ))}
       </div>
-      <div className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 9 }, (_, i) => (
+      <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: PAGE_SIZE }, (_, i) => (
           <PostCardSkeleton key={i} />
         ))}
       </div>

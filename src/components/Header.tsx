@@ -23,7 +23,8 @@ export default function Header() {
   const [openTab, setOpenTab] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hoverRegion, setHoverRegion] = useState<number>();
-  const [pickedCity, setPickedCity] = useState<CityResponse | null>(null);
+  // 고른 도시와 그 시·도 - 목록 화면에서 지역 · 도시 선택 상자가 같이 채워지게 둘 다 넘김
+  const [pickedCity, setPickedCity] = useState<(CityResponse & { regionId?: number }) | null>(null);
   const { isAuthenticated, isHydrated } = useAuthStore();
   const loggedIn = isHydrated && isAuthenticated;
 
@@ -201,8 +202,8 @@ export default function Header() {
                       <button
                         type="button"
                         onClick={() => {
-                          setPickedCity(c);
-                          goList({ cityId: c.id });
+                          setPickedCity({ ...c, regionId: hoverRegion });
+                          goList({ regionId: hoverRegion, cityId: c.id });
                         }}
                         className="text-[15px] text-ink-2 hover:text-foreground"
                       >
@@ -235,7 +236,11 @@ export default function Header() {
                     <button
                       type="button"
                       onClick={() =>
-                        goList({ cityId: pickedCity?.id, categoryId: activeCategoryId })
+                        goList({
+                          regionId: pickedCity?.regionId,
+                          cityId: pickedCity?.id,
+                          categoryId: activeCategoryId,
+                        })
                       }
                       className="text-[15px] text-foreground hover:underline hover:underline-offset-4"
                     >
@@ -246,7 +251,14 @@ export default function Header() {
                     <li key={s.id}>
                       <button
                         type="button"
-                        onClick={() => goList({ cityId: pickedCity?.id, subCategoryId: s.id })}
+                        onClick={() =>
+                          goList({
+                            regionId: pickedCity?.regionId,
+                            cityId: pickedCity?.id,
+                            categoryId: activeCategoryId,
+                            subCategoryId: s.id,
+                          })
+                        }
                         className="text-[15px] text-ink-2 hover:text-foreground"
                       >
                         {s.name}
