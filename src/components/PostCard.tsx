@@ -54,7 +54,8 @@ export default function PostCard({ post }: { post: PostResponse }) {
         <span>{post.subCategoryName}</span>
         <span aria-hidden>·</span>
         <span className="inline-flex items-center gap-1">
-          <Heart className="size-3.5" strokeWidth={1.5} aria-label="좋아요" />
+          <Heart className="size-3.5" strokeWidth={1.5} aria-hidden />
+          <span className="sr-only">좋아요</span>
           {post.likeCount}
         </span>
       </p>
