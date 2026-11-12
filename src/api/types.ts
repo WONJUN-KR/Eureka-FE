@@ -123,8 +123,7 @@ export interface CreatePostRequest {
   content: string;
   summary?: string;
   // 들른 순서대로 1~20곳
-  // 들른 순서대로 (편집기가 채움)
-  places?: PlaceRequest[];
+  places: PlaceRequest[];
 }
 
 // 수정은 보낸 값만 바뀜 - places 를 보내면 목록(순서 포함)을 통째로 바꿈 (기존 장소는 id 를 같이)
