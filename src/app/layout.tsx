@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Noto_Serif_KR } from "next/font/google";
 
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -7,6 +8,14 @@ import QuickMenu from "@/components/QuickMenu";
 import Providers from "./providers";
 
 import "./globals.css";
+
+// 제목만 명조 - 한 굵기(500)만 받아서 용량을 줄임
+const serif = Noto_Serif_KR({
+  weight: "500",
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-serif",
+});
 
 export const metadata: Metadata = {
   title: "유레카 - 여행 경로 공유 커뮤니티",
@@ -20,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={serif.variable}>
       <body>
         <Providers>
           <Header />
