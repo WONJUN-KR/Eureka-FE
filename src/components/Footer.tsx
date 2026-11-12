@@ -5,7 +5,7 @@ import Link from "next/link";
 // 원본 footer.jsp: 메뉴 줄 · 구분선 + 저작권 · 로고와 SNS 아이콘
 const MENU = [
   { href: "/", label: "Home" },
-  { href: "/posts", label: "발자취" },
+  { href: "/posts", label: "전체 글" },
   { href: "/posts/new", label: "글쓰기" },
   { href: "/mypage", label: "마이페이지" },
 ];

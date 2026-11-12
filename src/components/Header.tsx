@@ -102,7 +102,7 @@ export default function Header() {
               className={cn("size-7", solid ? "text-neutral-700" : "text-white drop-shadow")}
             />
           </Link>
-          <Link href="/posts" aria-label="전체 발자취 보기">
+          <Link href="/posts" aria-label="전체 글 보기">
             <Search
               aria-hidden
               strokeWidth={1.75}

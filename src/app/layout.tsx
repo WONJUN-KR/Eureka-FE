@@ -9,9 +9,9 @@ import Providers from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "유레카 - 여행 발자취 커뮤니티",
-  description: "나의 여행 발자취를 기록하고 공유하는 커뮤니티",
-  keywords: ["여행", "발자취", "커뮤니티", "여행기록", "유레카", "Eureka"],
+  title: "유레카 - 여행 경로 공유 커뮤니티",
+  description: "다녀온 곳을 순서대로 남기고 다른 사람의 여행을 따라가는 커뮤니티",
+  keywords: ["여행", "여행 경로", "커뮤니티", "여행기록", "유레카", "Eureka"],
 };
 
 export default function RootLayout({
