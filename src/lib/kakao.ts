@@ -48,27 +48,21 @@ declare global {
 
 const KEY = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
 let loading: Promise<Kakao | null> | null = null;
-// 시도 번호 - 타임아웃으로 넘긴 예전 시도가 늦게 실패해도 지금 시도의 loading 을 지우지 않게
-let attempt = 0;
 
 export const hasKakaoKey = Boolean(KEY);
 
 export function loadKakao(): Promise<Kakao | null> {
   if (typeof window === "undefined" || !KEY) return Promise.resolve(null);
   if (loading) return loading;
-  const id = ++attempt;
-  const clear = () => {
-    if (attempt === id) loading = null;
-  };
   loading = new Promise((resolve) => {
     // 스크립트는 받았는데 지도 준비가 끝나지 않는 경우(차단 확장 등) - 8초 뒤 약도로 넘어가고 다음에 다시 시도
     const timer = setTimeout(() => {
-      clear();
+      loading = null;
       resolve(null);
     }, 8000);
     const finish = (k: Kakao | null) => {
       clearTimeout(timer);
-      if (!k) clear();
+      if (!k) loading = null;
       resolve(k);
     };
     const done = () => {
