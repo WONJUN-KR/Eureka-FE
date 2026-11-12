@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 import { ENDPOINTS } from "../endpoints";
 import { queryKeys } from "../queryKeys";
@@ -19,6 +19,7 @@ import type {
   UserProfileResponse,
   UserResponse,
 } from "../types";
+import { pageInfo } from "../types";
 
 export function usePosts(params: PostListParams, enabled = true) {
   return useQuery({
@@ -107,20 +108,37 @@ export function useUserProfile(id: number) {
   });
 }
 
-// 한 사람의 공개 글 - 지도에 여행을 다 그리려고 넉넉히 50개
+// 사람별 글은 50개씩 - 지도에 여행을 넉넉히 그리고, 더 있으면 '더 보기'로 이어 받음
+const USER_PAGE = 50;
+const nextPage = (last: Page<PostResponse>) => {
+  const { number, totalPages } = pageInfo(last);
+  return number + 1 < totalPages ? number + 1 : undefined;
+};
+
+// 한 사람의 공개 글
 export function useUserPosts(id: number, enabled = true) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.user.posts(id),
-    queryFn: () => get<Page<PostResponse>>(ENDPOINTS.USERS.POSTS(id), { params: { size: 50 } }),
+    queryFn: ({ pageParam }) =>
+      get<Page<PostResponse>>(ENDPOINTS.USERS.POSTS(id), {
+        params: { page: pageParam, size: USER_PAGE },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: nextPage,
     enabled: enabled && Number.isFinite(id),
   });
 }
 
 // 내 글 - 공개 전 · 숨김 글까지 (마이페이지)
 export function useMyPosts(enabled = true) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.user.myPosts(),
-    queryFn: () => get<Page<PostResponse>>(ENDPOINTS.USERS.MY_POSTS, { params: { size: 50 } }),
+    queryFn: ({ pageParam }) =>
+      get<Page<PostResponse>>(ENDPOINTS.USERS.MY_POSTS, {
+        params: { page: pageParam, size: USER_PAGE },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: nextPage,
     enabled,
   });
 }
