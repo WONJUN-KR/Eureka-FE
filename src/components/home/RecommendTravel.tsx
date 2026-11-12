@@ -38,7 +38,7 @@ export default function RecommendTravel() {
   const find = (name: string, match?: string) => {
     for (const [i, q] of cityLists.entries()) {
       const c = q.data?.find((x) => x.name === name || (match && x.name.includes(match)));
-      if (c) return { id: c.id, region: regions![i].name };
+      if (c) return { id: c.id, region: regions![i].name, regionId: regions![i].id };
     }
   };
 
@@ -50,7 +50,10 @@ export default function RecommendTravel() {
           const found = find(c.name, c.match);
           return (
             <li key={c.name}>
-              <Link href={found ? `/posts?cityId=${found.id}` : "/posts"} className="group block">
+              <Link
+                href={found ? `/posts?regionId=${found.regionId}&cityId=${found.id}` : "/posts"}
+                className="group block"
+              >
                 <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-secondary">
                   <Image
                     src={`/images/recommendImages/${c.img}`}
