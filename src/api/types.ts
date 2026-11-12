@@ -112,7 +112,8 @@ export interface PlaceResponse {
   memo: string | null;
   // "HH:mm"
   visitedAt: string | null;
-  images: ImageResponse[];
+  // 사진 없는 장소는 빈 배열 - 혹시 빠져 와도 화면이 멈추지 않게 선택값으로
+  images?: ImageResponse[] | null;
 }
 
 export interface CreatePostRequest {
