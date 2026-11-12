@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { useCategories, useCities, useRegions, useSubCategories } from "@/api/queries";
 import type { CityResponse } from "@/api/types";
+import { buttonClass } from "@/components/ui/field";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -37,6 +38,16 @@ export default function Header() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // 뒤로 · 앞으로 가기는 주소(pathname)가 같아도(쿼리만 바뀌어도) 메뉴를 닫음
+  useEffect(() => {
+    const onPop = () => {
+      setOpenTab(null);
+      setMobileOpen(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   // 페이지를 옮기면 펼친 메뉴는 닫음 (렌더 중에 이전 주소와 비교 - effect 안 setState 대신)
@@ -101,7 +112,13 @@ export default function Header() {
             ))}
           </ul>
         </nav>
-        <div className="ml-auto hidden items-center gap-5 text-[15px] md:flex">
+        {/* 로그인 상태를 읽기 전엔 계정 메뉴를 비워 둠 - 로그인한 사람에게 '가입하기'가 깜빡 보이지 않게 */}
+        <div
+          className={cn(
+            "ml-auto hidden items-center gap-5 text-[15px] md:flex",
+            !isHydrated && "invisible"
+          )}
+        >
           <Link href={loggedIn ? "/posts/new" : "/login"} className={quiet}>
             글쓰기
           </Link>
@@ -117,10 +134,9 @@ export default function Header() {
               <Link
                 href="/signup"
                 className={cn(
-                  "inline-flex h-9 items-center rounded-[10px] px-3.5 text-sm font-medium",
-                  solid
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-white text-foreground"
+                  buttonClass.primary,
+                  "h-9 px-3.5 text-sm",
+                  !solid && "bg-white text-foreground hover:bg-white/90"
                 )}
               >
                 가입하기
@@ -246,7 +262,10 @@ export default function Header() {
 
       {/* 휴대폰 메뉴 - 지역과 카테고리는 목록 화면의 필터로 바로 이동 */}
       {mobileOpen && (
-        <nav className="border-t bg-background px-4 pb-6 pt-2 md:hidden" aria-label="휴대폰 메뉴">
+        <nav
+          className="max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain border-t bg-background px-4 pb-6 pt-2 md:hidden"
+          aria-label="휴대폰 메뉴"
+        >
           <p className="pb-1 pt-3 text-sm text-muted-foreground">카테고리</p>
           <ul>
             {categories?.map((c) => (
@@ -277,24 +296,15 @@ export default function Header() {
           </ul>
           <div className="mt-4 flex gap-2 border-t pt-4">
             {loggedIn ? (
-              <Link
-                href="/mypage"
-                className="flex-1 rounded-[10px] border py-2.5 text-center text-sm"
-              >
+              <Link href="/mypage" className={cn(buttonClass.ghost, "flex-1")}>
                 마이페이지
               </Link>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="flex-1 rounded-[10px] border py-2.5 text-center text-sm"
-                >
+                <Link href="/login" className={cn(buttonClass.ghost, "flex-1")}>
                   로그인
                 </Link>
-                <Link
-                  href="/signup"
-                  className="flex-1 rounded-[10px] bg-primary py-2.5 text-center text-sm text-primary-foreground"
-                >
+                <Link href="/signup" className={cn(buttonClass.primary, "flex-1")}>
                   가입하기
                 </Link>
               </>
