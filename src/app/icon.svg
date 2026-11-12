@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="162 58 760 760">
+  <defs>
+    <mask id="m" maskUnits="userSpaceOnUse" x="162" y="58" width="760" height="760">
+      <rect x="162" y="58" width="760" height="760" fill="#fff"/>
+      <rect x="697" y="342" width="90" height="46" rx="6" fill="#000"/>
+      <rect x="162" y="410" width="760" height="18" fill="#000"/>
+      <circle cx="515" cy="538" r="192" fill="#fff"/>
+      <circle cx="515" cy="538" r="176" fill="#000"/>
+      <circle cx="515" cy="538" r="159" fill="#fff"/>
+      <circle cx="515" cy="538" r="140" fill="#000"/>
+      <circle cx="515" cy="538" r="118" fill="#fff"/>
+    </mask>
+  </defs>
+  <g fill="#2d4537" mask="url(#m)">
+    <rect x="182" y="318" width="660" height="427" rx="24"/>
+    <rect x="234" y="284" width="88" height="44" rx="8"/>
+    <rect x="697" y="283" width="88" height="40" rx="8"/>
+    <path d="M400 320 L428 266 Q433 257 443 257 L577 257 Q587 257 592 266 L625 320 Z"/>
+  </g>
+  <g fill="#c9532a">
+    <path d="M708 134 L741 131 L738 241 Z"/>
+    <path d="M815 138 L844 155 L778 243 Z"/>
+    <path d="M885 213 L902 240 L800 272 Z"/>
+  </g>
+</svg>

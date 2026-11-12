@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useCategories } from "@/api/queries";
+import Logo from "@/components/ui/Logo";
 
 // 원본 footer.jsp: 메뉴 줄 · 저작권 · 로고 - 원본의 SNS 아이콘은 실제 계정이 없어서 뺌
 // 카테고리 링크는 헤더처럼 API 에서 받아서 id · 이름을 맞춤
@@ -12,7 +13,7 @@ export default function Footer() {
     <footer className="mt-24 border-t">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted-foreground md:flex-row md:items-start md:justify-between md:px-8">
         <div>
-          <p className="mb-2 font-serif text-lg text-foreground">유레카</p>
+          <Logo className="mb-2 text-lg text-primary" />
           <p>여행의 발견, 유레카</p>
           <p className="mt-1">&copy; 유레카</p>
         </div>
