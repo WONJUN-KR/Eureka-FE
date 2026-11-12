@@ -59,3 +59,21 @@ export default function KoreaMap({
     </svg>
   );
 }
+
+// 남한 지도에 찍어도 되는 좌표인지 - 위경도 상자에서 가까운 일본 땅(대마도 · 규슈 북부)과 북한 쪽을 뺌
+// 국경을 정확히 따지진 않음. 지도에 그리는 점 거르기용
+export function inSouthKorea({
+  latitude: lat,
+  longitude: lng,
+}: {
+  latitude: number;
+  longitude: number;
+}) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat < 33 || lat > 38.65 || lng < 124.5 || lng > 132) return false;
+  // 울산 남쪽 바다 건너는 규슈 · 혼슈 끝 (부산 · 울산은 동경 129.4 안쪽)
+  if (lat < 35.6 && lng > 129.6) return false;
+  // 대마도
+  if (lat > 34.05 && lat < 34.72 && lng > 129.15 && lng < 129.6) return false;
+  return true;
+}
