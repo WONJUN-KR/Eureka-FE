@@ -1,64 +1,45 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-import { cn } from "@/lib/utils";
-
-// 원본 banner.jsp + banner.js: 사진 3장이 3초마다 페이드로 바뀌고, 가운데에 문구 + '나만의 장소 공유하기'
-const SLIDES = ["banner1.jpg", "banner2.jpg", "banner3.jpg"];
-
+// 첫 화면: 사진 한 장 위 왼쪽 빈 하늘 자리에 짧은 제목과 버튼 두 개 (원본 문구 '여행의 발견, 유레카')
+// 원본은 3장 슬라이드였는데, 글자가 늘 같은 자리에 읽히도록 한 장으로 둠
 export default function Banner() {
-  const [current, setCurrent] = useState(0);
-  // 첫 화면엔 첫 장만 받고, 다음 장은 바뀌기 전에 미리 붙임 (3장을 한꺼번에 받으면 첫 화면이 1MB 넘게 무거워짐)
-  const [mounted, setMounted] = useState(1);
-
-  useEffect(() => {
-    let next = 0;
-    const t = setInterval(() => {
-      next = (next + 1) % SLIDES.length;
-      setCurrent(next);
-      // 지금 장 다음 것까지 붙여두면 바뀔 때 이미 받아져 있음
-      setMounted((m) => Math.min(SLIDES.length, Math.max(m, next + 2)));
-    }, 3000);
-    const warm = setTimeout(() => setMounted((m) => Math.max(m, 2)), 1500);
-    return () => {
-      clearInterval(t);
-      clearTimeout(warm);
-    };
-  }, []);
-
   return (
-    <section className="relative mx-auto h-[70vh] max-h-[800px] min-h-[420px] w-full max-w-6xl overflow-hidden">
-      {SLIDES.slice(0, mounted).map((src, i) => (
-        <Image
-          key={src}
-          src={`/images/bannerImages/${src}`}
-          alt=""
-          fill
-          // 첫 장이 첫 화면 가장 큰 요소(LCP) - 미리 받기, 나머지는 바뀔 때 보이니 기본(lazy)
-          priority={i === 0}
-          quality={70}
-          sizes="(min-width: 1152px) 1152px, 100vw"
-          className={cn(
-            "object-cover transition-opacity duration-1000 motion-reduce:transition-none",
-            i === current ? "opacity-100" : "opacity-0"
-          )}
-        />
-      ))}
-      <div className="absolute inset-0 bg-black/15" />
-      <div className="absolute inset-x-0 top-[44%] flex flex-col items-center gap-6 px-4 text-center">
-        <h2 className="text-2xl font-semibold text-white drop-shadow md:text-3xl">
-          여행의 발견, 유레카!
-        </h2>
-        {/* 원본 하늘색(135,192,206) 글자는 밝은 반투명 배경 위에서 대비 2:1 미만 → 같은 색 계열을 어둡게 + 배경 불투명도 올려 4.5:1 이상 */}
-        <Link
-          href="/posts/new"
-          className="rounded-full bg-white/85 px-8 py-3 text-2xl font-bold text-[rgb(44,110,128)] transition-colors hover:bg-white md:text-3xl"
-        >
-          나만의 장소 공유하기
-        </Link>
+    <section className="relative h-[86vh] max-h-[720px] min-h-[520px] overflow-hidden">
+      <Image
+        src="/images/bannerImages/banner2.jpg"
+        alt=""
+        fill
+        priority
+        quality={70}
+        sizes="100vw"
+        className="object-cover object-[70%_40%]"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-[rgba(20,26,22,0.62)] via-[rgba(20,26,22,0.25)] to-transparent" />
+      <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-center px-4 text-[#fbf8f1] md:px-8">
+        <p className="mb-4 text-[15px] opacity-85">여행의 발견, 유레카</p>
+        <h1 className="mb-5 max-w-[620px] font-serif text-[34px] leading-[1.25] tracking-tight md:text-[52px]">
+          다녀온 곳을 남기고
+          <br />
+          다른 사람의 여행을 따라가요
+        </h1>
+        <p className="mb-8 max-w-md text-[17px] opacity-90 md:text-lg">
+          들른 곳을 순서대로 이으면 지도 위에 나만의 경로가 생겨요
+        </p>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/posts"
+            className="inline-flex h-11 items-center rounded-[10px] bg-card px-5 text-[15px] font-medium text-foreground hover:bg-card/90"
+          >
+            여행 기록 둘러보기
+          </Link>
+          <Link
+            href="/posts/new"
+            className="inline-flex h-11 items-center rounded-[10px] border border-white/40 px-5 text-[15px] font-medium text-[#fbf8f1] hover:bg-white/10"
+          >
+            나만의 장소 공유하기
+          </Link>
+        </div>
       </div>
     </section>
   );
