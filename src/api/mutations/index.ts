@@ -71,6 +71,9 @@ export function useToggleLike(postId: number) {
     onSuccess: (data) => {
       qc.setQueryData(["posts", "like", postId], data);
       qc.invalidateQueries({ queryKey: queryKeys.posts.detail(postId) });
+      // 마이페이지 '추천한 글' · 받은 좋아요 수
+      qc.invalidateQueries({ queryKey: queryKeys.user.myLikes() });
+      qc.invalidateQueries({ queryKey: queryKeys.user.profileAll });
     },
   });
 }
