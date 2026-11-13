@@ -78,11 +78,12 @@ function BoardList() {
   // 검색칸 글자는 직접 들고 있고, 주소의 검색어가 바뀌면(뒤로 가기 등) 렌더 중에 맞춤 - 다시 그려도 포커스 유지
   const [text, setText] = useState(keyword ?? "");
   const [lastKeyword, setLastKeyword] = useState(keyword);
+  // 칸을 비워서 직접 검색을 푼 경우에만 - 그 사이 새로 친 글자는 주소가 늦게 바뀌어도 남김 (뒤로 가기는 주소대로)
+  const [clearing, setClearing] = useState(false);
   if (keyword !== lastKeyword) {
     setLastKeyword(keyword);
-    // 칸을 비워 검색을 푸는 사이 새로 친 글자는 남김 (주소가 늦게 바뀌어도 덮어쓰지 않게)
-    const typedAfterClear = keyword == null && text !== "" && text !== lastKeyword;
-    if (!typedAfterClear) setText(keyword ?? "");
+    setClearing(false);
+    if (!(clearing && keyword == null)) setText(keyword ?? "");
   }
   // 목록에 없는 테마로 들어온 경우(카테고리 없이 테마만 등) - 고른 상태를 보이고 해제할 수 있게
   const unknownSub = subCategoryId != null && !subCategory;
@@ -138,7 +139,10 @@ function BoardList() {
           onChange={(e) => {
             setText(e.target.value);
             // 칸의 지우기(x)로 비우면 검색도 바로 풀림
-            if (!e.target.value && keyword) setParams({ keyword: undefined });
+            if (!e.target.value && keyword) {
+              setClearing(true);
+              setParams({ keyword: undefined });
+            }
           }}
           placeholder="제목 · 본문 · 장소 이름"
           className={cn(inputClass, "h-10 py-0 pl-10 text-sm")}
