@@ -3,7 +3,7 @@
 import { Check, Link2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { useMyPosts, useUserPosts, useUserProfile } from "@/api/queries";
+import { useMyLikes, useMyPosts, useUserPosts, useUserProfile } from "@/api/queries";
 import { getErrorMessage } from "@/api/request";
 import { pageInfo } from "@/api/types";
 import KoreaMap, { project } from "@/components/map/KoreaMap";
@@ -26,6 +26,9 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
     fetchNextPage,
     isFetchingNextPage,
   } = mine ? myPosts : publicPosts;
+  // 마이페이지만: 작성글 | 추천한 글(내가 좋아요한 글) - 추천한 글은 탭을 열 때 받아옴
+  const [tab, setTab] = useState<"posts" | "likes">("posts");
+  const likes = useMyLikes(mine && tab === "likes");
   const [hover, setHover] = useState<number>();
   const [copied, setCopied] = useState(false);
   const copiedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -39,6 +42,18 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
   const placeCount = trips.reduce((n, p) => n + p.places!.length, 0);
   const cityCount = new Set(list.map((p) => p.cityName)).size;
   const total = posts?.pages[0] ? pageInfo(posts.pages[0]).totalElements : 0;
+
+  // 아래 목록: 작성글이면 위 글 목록 그대로, 추천한 글이면 좋아요한 글
+  const showLikes = mine && tab === "likes";
+  const shown = showLikes
+    ? likes
+    : { isLoading, isError: postsError, hasNextPage, fetchNextPage, isFetchingNextPage };
+  const shownList = showLikes ? (likes.data?.pages.flatMap((pg) => pg.content) ?? []) : list;
+  const shownTotal = showLikes
+    ? likes.data?.pages[0]
+      ? pageInfo(likes.data.pages[0]).totalElements
+      : 0
+    : total;
 
   const share = async () => {
     const url = `${window.location.origin}/users/${userId}`;
@@ -62,7 +77,14 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
           </h1>
           <p className="mt-2 text-[15px] tabular-nums text-ink-2">
             {profile
-              ? `글 ${profile.postCount}개 · 도시 ${cityCount}곳 · 들른 장소 ${placeCount}곳`
+              ? [
+                  `글 ${profile.postCount}개`,
+                  profile.likeReceivedCount != null && `받은 좋아요 ${profile.likeReceivedCount}`,
+                  `도시 ${cityCount}곳`,
+                  `들른 장소 ${placeCount}곳`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
               : " "}
           </p>
         </div>
@@ -116,37 +138,69 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
           </div>
         </div>
 
-        <section aria-label="쓴 글">
-          {postsError && <p className="py-12 text-destructive">글 목록을 불러오지 못했어요</p>}
-          {!isLoading && !postsError && list.length === 0 && (
+        <section aria-label={showLikes ? "추천한 글" : "쓴 글"}>
+          {mine && (
+            <div role="tablist" aria-label="글 목록" className="mb-8 flex gap-6 border-b">
+              {(
+                [
+                  ["posts", "작성글"],
+                  ["likes", "추천한 글"],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === key}
+                  onClick={() => setTab(key)}
+                  className={cn(
+                    "-mb-px border-b-2 pb-3 text-[15px] transition-colors",
+                    tab === key
+                      ? "border-foreground font-medium text-foreground"
+                      : "border-transparent text-ink-2 hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+          {shown.isError && <p className="py-12 text-destructive">글 목록을 불러오지 못했어요</p>}
+          {!shown.isLoading && !shown.isError && shownList.length === 0 && (
             <p className="py-12 text-ink-2">
-              {mine ? "아직 쓴 글이 없어요" : "아직 공개한 글이 없어요"}
+              {showLikes
+                ? "아직 좋아요한 글이 없어요"
+                : mine
+                  ? "아직 쓴 글이 없어요"
+                  : "아직 공개한 글이 없어요"}
             </p>
           )}
           <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2">
-            {isLoading && Array.from({ length: 4 }, (_, i) => <PostCardSkeleton key={i} />)}
-            {list.map((p) => (
+            {shown.isLoading && Array.from({ length: 4 }, (_, i) => <PostCardSkeleton key={i} />)}
+            {shownList.map((p) => (
               <div
                 key={p.id}
-                // 장소가 없는 글은 지도에 여행이 없어서 강조하지 않음
-                onMouseEnter={() => p.places?.length && setHover(p.id)}
+                // 지도는 내 여행만 그림 - 추천한 글과 장소가 없는 글은 강조하지 않음
+                onMouseEnter={() => !showLikes && p.places?.length && setHover(p.id)}
                 onMouseLeave={() => setHover(undefined)}
-                onFocus={() => p.places?.length && setHover(p.id)}
+                onFocus={() => !showLikes && p.places?.length && setHover(p.id)}
                 onBlur={() => setHover(undefined)}
               >
                 <PostCard post={p} />
               </div>
             ))}
           </div>
-          {hasNextPage && (
+          {shown.hasNextPage && (
             <div className="mt-12 flex justify-center">
               <button
                 type="button"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
+                onClick={() => shown.fetchNextPage()}
+                disabled={shown.isFetchingNextPage}
                 className={buttonClass.ghost}
               >
-                {isFetchingNextPage ? "불러오는 중" : `더 보기 (${list.length} / ${total})`}
+                {shown.isFetchingNextPage
+                  ? "불러오는 중"
+                  : `더 보기 (${shownList.length} / ${shownTotal})`}
               </button>
             </div>
           )}

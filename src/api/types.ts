@@ -59,6 +59,8 @@ export interface UserProfileResponse {
   id: number;
   nickname: string;
   postCount: number;
+  // 공개 글이 받은 좋아요 합
+  likeReceivedCount?: number;
 }
 
 export interface PostResponse {

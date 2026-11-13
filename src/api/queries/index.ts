@@ -129,6 +129,20 @@ export function useUserPosts(id: number, enabled = true) {
   });
 }
 
+// 내가 좋아요한 글 - 좋아요 누른 순 (공개 · 삭제 안 된 글만)
+export function useMyLikes(enabled = true) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.user.myLikes(),
+    queryFn: ({ pageParam }) =>
+      get<Page<PostResponse>>(ENDPOINTS.USERS.MY_LIKES, {
+        params: { page: pageParam, size: USER_PAGE },
+      }),
+    initialPageParam: 0,
+    getNextPageParam: nextPage,
+    enabled,
+  });
+}
+
 // 내 글 - 공개 전 · 숨김 글까지 (마이페이지)
 export function useMyPosts(enabled = true) {
   return useInfiniteQuery({
