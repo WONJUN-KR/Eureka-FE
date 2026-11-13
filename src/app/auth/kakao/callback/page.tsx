@@ -27,8 +27,8 @@ export default function KakaoCallbackPage() {
       router.replace("/");
       return;
     }
-    // Next 라우터가 history.state 에 넣어 둔 값은 그대로 두고 주소의 해시만 지움
-    window.history.replaceState(window.history.state, "", window.location.pathname);
+    // 주소의 해시만 지움 - state 는 null 로 넘겨야 Next 가 받아서 라우터 주소도 같이 맞춤
+    window.history.replaceState(null, "", window.location.pathname);
     if (hash.get("error") || !code) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- 해시는 마운트 후에만 읽을 수 있음
       setFailed(true);
