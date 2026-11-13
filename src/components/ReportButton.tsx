@@ -7,18 +7,24 @@ import { useReportPost } from "@/api/mutations";
 import { getErrorMessage } from "@/api/request";
 import { REPORT_REASONS, type ReportReason } from "@/api/types";
 import { buttonClass, ErrorText } from "@/components/ui/field";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 import { cn } from "@/lib/utils";
 
-// 글 신고: 버튼 -> 사유 고르는 창. 신고했거나 이미 신고한 글이면 버튼을 '신고함'으로 잠금
+// 글 신고: 버튼 -> 사유 고르는 창. 이 화면에서 신고했거나 이미 신고한 글(409)이면 버튼을 '신고함'으로 잠금
+// (BE 에 '내가 신고했는지' 조회가 없어서 새로고침하면 다시 '신고' - 다시 보내면 409 로 같은 안내)
 export default function ReportButton({ postId }: { postId: number }) {
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
-  const opener = useRef<HTMLButtonElement>(null);
+  const status = useRef<HTMLParagraphElement>(null);
+
+  // 신고가 끝나면 버튼이 잠겨서 포커스를 받을 수 없음 -> 접수 안내로 옮김
+  useEffect(() => {
+    if (done) status.current?.focus();
+  }, [done]);
 
   return (
     <div className="flex flex-col items-end gap-2">
       <button
-        ref={opener}
         type="button"
         onClick={() => setOpen(true)}
         disabled={done}
@@ -27,17 +33,19 @@ export default function ReportButton({ postId }: { postId: number }) {
         {done ? "신고함" : "신고"}
       </button>
       {done && (
-        <p role="status" className="text-right text-sm text-ink-2">
+        <p
+          ref={status}
+          tabIndex={-1}
+          role="status"
+          className="text-right text-sm text-ink-2 outline-none"
+        >
           신고가 접수됐어요. 같은 글에 신고가 쌓이면 글이 숨겨져요
         </p>
       )}
       {open && (
         <ReportDialog
           postId={postId}
-          onClose={() => {
-            setOpen(false);
-            opener.current?.focus();
-          }}
+          onClose={() => setOpen(false)}
           onDone={() => {
             setOpen(false);
             setDone(true);
@@ -58,47 +66,35 @@ function ReportDialog({
   onDone: () => void;
 }) {
   const [reason, setReason] = useState<ReportReason>();
-  const report = useReportPost(postId);
+  // 결과 처리는 mutation 쪽에 둬서, 보내는 중엔 창을 못 닫게 하는 것과 함께 결과가 사라지지 않게
+  const report = useReportPost(postId, {
+    onSuccess: onDone,
+    // 이미 신고한 글(409)도 신고한 상태로 보여줌
+    onError: (e) => e instanceof AxiosError && e.response?.status === 409 && onDone(),
+  });
   const dialog = useRef<HTMLDivElement>(null);
+  // 보내는 중엔 Esc · 바깥 클릭 · 취소로 닫지 않음
+  const close = () => !report.isPending && onClose();
 
-  // 열면 첫 사유로 포커스, Esc 로 닫기, Tab 은 창 안에서만
-  useEffect(() => {
-    dialog.current?.querySelector<HTMLInputElement>("input")?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key !== "Tab" || !dialog.current) return;
-      // 라디오 묶음은 Tab 한 번에 하나(고른 것 또는 첫 번째), 마지막은 활성 버튼
-      const radios = [...dialog.current.querySelectorAll<HTMLInputElement>('input[type="radio"]')];
+  // 라디오 묶음은 Tab 한 번에 하나(고른 것 또는 첫 번째), 마지막은 활성 버튼
+  const radios = () => [
+    ...(dialog.current?.querySelectorAll<HTMLInputElement>('input[type="radio"]') ?? []),
+  ];
+  useDialogFocus(dialog, {
+    onClose: close,
+    initial: () => radios()[0],
+    edges: () => {
       const buttons = [
-        ...dialog.current.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
+        ...(dialog.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []),
       ];
-      const first = radios.find((r) => r.checked) ?? radios[0];
-      const last = buttons[buttons.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  const submit = () => {
-    if (!reason) return;
-    report.mutate(reason, {
-      onSuccess: onDone,
-      // 이미 신고한 글(409)도 신고한 상태로 보여줌
-      onError: (e) => e instanceof AxiosError && e.response?.status === 409 && onDone(),
-    });
-  };
+      return [radios().find((r) => r.checked) ?? radios()[0], buttons[buttons.length - 1]];
+    },
+  });
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
+      onClick={close}
     >
       <div
         ref={dialog}
@@ -112,7 +108,7 @@ function ReportDialog({
           이 글 신고
         </h2>
         <p className="mb-5 text-sm text-ink-2">신고 이유를 골라 주세요</p>
-        <fieldset className="flex flex-col gap-1" disabled={report.isPending}>
+        <fieldset className="flex flex-col gap-1">
           <legend className="sr-only">신고 이유</legend>
           {REPORT_REASONS.map((r) => (
             <label
@@ -133,13 +129,19 @@ function ReportDialog({
         </fieldset>
         <ErrorText message={report.isError ? getErrorMessage(report.error) : null} />
         <div className="mt-6 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className={cn(buttonClass.ghost, "h-10")}>
+          <button
+            type="button"
+            onClick={close}
+            disabled={report.isPending}
+            className={cn(buttonClass.ghost, "h-10")}
+          >
             취소
           </button>
           <button
             type="button"
-            onClick={submit}
+            onClick={() => reason && report.mutate(reason)}
             disabled={!reason || report.isPending}
+            aria-busy={report.isPending}
             className={cn(buttonClass.primary, "h-10")}
           >
             {report.isPending ? "보내는 중" : "신고하기"}

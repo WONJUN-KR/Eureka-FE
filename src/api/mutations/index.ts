@@ -66,9 +66,19 @@ export function useDeletePost() {
   });
 }
 
-export function useReportPost(postId: number) {
+// 신고가 3건 쌓이면 BE 가 글을 숨김 -> 목록 캐시를 다시 받아 숨긴 글이 남지 않게
+export function useReportPost(
+  postId: number,
+  opts: { onSuccess?: () => void; onError?: (e: unknown) => void } = {}
+) {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (reason: ReportReason) => post<null>(ENDPOINTS.POSTS.REPORT(postId), { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["posts", "list"] });
+      opts.onSuccess?.();
+    },
+    onError: opts.onError,
   });
 }
 
