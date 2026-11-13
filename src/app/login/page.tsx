@@ -8,6 +8,7 @@ import { getErrorMessage } from "@/api/request";
 import type { Gender, SignupRequest } from "@/api/types";
 import { ErrorText, Field, inputClass, SubmitButton } from "@/components/ui/field";
 import { LogoMark } from "@/components/ui/Logo";
+import { startKakaoLogin } from "@/lib/kakaoLogin";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -206,7 +207,7 @@ function LoginAndJoin() {
   );
 }
 
-// 카카오로 시작하기 - 처음이면 BE 가 자동 가입. 브라우저째 BE 로 이동해야 카카오 로그인 화면으로 넘어감
+// 카카오로 시작하기 - 처음이면 BE 가 자동 가입
 // 버튼 색 · 기호는 카카오 로그인 디자인 가이드(노란 바탕 #FEE500, 검은 말풍선)
 function KakaoButton() {
   return (
@@ -216,8 +217,9 @@ function KakaoButton() {
         또는
         <span className="h-px flex-1 bg-border" aria-hidden />
       </div>
-      <a
-        href={`${process.env.NEXT_PUBLIC_API_BASE_URL ?? ""}/api/auth/kakao`}
+      <button
+        type="button"
+        onClick={startKakaoLogin}
         className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FEE500] text-[15px] font-medium text-black/85 transition-opacity hover:opacity-90"
       >
         <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden>
@@ -227,7 +229,7 @@ function KakaoButton() {
           />
         </svg>
         카카오로 시작하기
-      </a>
+      </button>
     </>
   );
 }
