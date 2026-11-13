@@ -34,7 +34,8 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
     const url = new URL(window.location.href);
     if (t === "likes") url.searchParams.set("tab", "likes");
     else url.searchParams.delete("tab");
-    window.history.replaceState(window.history.state, "", url);
+    // state 는 null - Next 가 이 호출을 받아 라우터 주소(useSearchParams)도 같이 맞춤 (내부 state 를 넘기면 건너뜀)
+    window.history.replaceState(null, "", url);
   };
   const likes = useMyLikes(mine && tab === "likes");
   const [hover, setHover] = useState<number>();
