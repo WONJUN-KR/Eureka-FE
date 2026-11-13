@@ -12,6 +12,7 @@ import { getErrorMessage } from "@/api/request";
 import type { ImageResponse, PlaceResponse } from "@/api/types";
 import RouteMap from "@/components/map/RouteMap";
 import PostCard from "@/components/PostCard";
+import ReportButton from "@/components/ReportDialog";
 import { buttonClass } from "@/components/ui/field";
 import SectionHead from "@/components/ui/SectionHead";
 import { cn, formatDate, isOptimizable } from "@/lib/utils";
@@ -197,6 +198,12 @@ export default function PostDetailPage() {
             <Link href="/posts" className={buttonClass.ghost}>
               목록으로
             </Link>
+            {/* 신고는 로그인한 사람이 남의 글에만 */}
+            {loggedIn && me && !isMine && (
+              <div className="ml-auto">
+                <ReportButton postId={post.id} />
+              </div>
+            )}
             {isMine && (
               <div className="ml-auto flex gap-2">
                 <Link
