@@ -17,6 +17,7 @@ export const ENDPOINTS = {
     LIST: "/api/posts",
     CREATE: "/api/posts",
     DETAIL: (id: number) => `/api/posts/${id}`,
+    REPORT: (id: number) => `/api/posts/${id}/reports`,
     UPDATE: (id: number) => `/api/posts/${id}`,
     DELETE: (id: number) => `/api/posts/${id}`,
   },

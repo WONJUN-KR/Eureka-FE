@@ -12,6 +12,7 @@ import type {
   ImageResponse,
   LikeResponse,
   PostDetailResponse,
+  ReportReason,
   SignupRequest,
   TokenResponse,
   UpdatePostRequest,
@@ -62,6 +63,22 @@ export function useDeletePost() {
     mutationFn: (id: number) => del<null>(ENDPOINTS.POSTS.DELETE(id)),
     // 목록만 갱신. 지운 글의 상세는 화면에서 조회를 끄고 떠남(invalidate·remove 하면 떠나기 전에 다시 불러서 404)
     onSuccess: () => refreshPosts(qc, ["posts", "list"]),
+  });
+}
+
+// 신고가 3건 쌓이면 BE 가 글을 숨김 -> 목록 캐시를 다시 받아 숨긴 글이 남지 않게
+export function useReportPost(
+  postId: number,
+  opts: { onSuccess?: () => void; onError?: (e: unknown) => void } = {}
+) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (reason: ReportReason) => post<null>(ENDPOINTS.POSTS.REPORT(postId), { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["posts", "list"] });
+      opts.onSuccess?.();
+    },
+    onError: opts.onError,
   });
 }
 
