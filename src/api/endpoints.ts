@@ -13,6 +13,7 @@ export const ENDPOINTS = {
     UPDATE: "/api/users/me",
     DELETE: "/api/users/me",
     MY_POSTS: "/api/users/me/posts",
+    MY_LIKES: "/api/users/me/likes",
     PROFILE: (id: number) => `/api/users/${id}`,
     POSTS: (id: number) => `/api/users/${id}/posts`,
   },
