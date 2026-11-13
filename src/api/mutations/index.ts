@@ -12,6 +12,7 @@ import type {
   ImageResponse,
   LikeResponse,
   PostDetailResponse,
+  ReportReason,
   SignupRequest,
   TokenResponse,
   UpdatePostRequest,
@@ -62,6 +63,12 @@ export function useDeletePost() {
     mutationFn: (id: number) => del<null>(ENDPOINTS.POSTS.DELETE(id)),
     // 목록만 갱신. 지운 글의 상세는 화면에서 조회를 끄고 떠남(invalidate·remove 하면 떠나기 전에 다시 불러서 404)
     onSuccess: () => refreshPosts(qc, ["posts", "list"]),
+  });
+}
+
+export function useReportPost(postId: number) {
+  return useMutation({
+    mutationFn: (reason: ReportReason) => post<null>(ENDPOINTS.POSTS.REPORT(postId), { reason }),
   });
 }
 
