@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 
 import { useCategories, useCities, usePosts, useRegions, useSubCategories } from "@/api/queries";
 import { pageInfo } from "@/api/types";
@@ -117,7 +117,7 @@ function BoardList() {
         </select>
       </div>
 
-      {/* 검색어 - 주소의 keyword 가 바뀌면 칸도 새 값으로 (key) */}
+      {/* 지금 고른 조건 안에서 찾기 - 칸 글자는 위에서 주소의 keyword 와 맞춰 둠 */}
       <form
         role="search"
         className="relative mb-4 md:max-w-2xl"
@@ -296,6 +296,8 @@ function BoardListFallback({ chips = false }: { chips?: boolean }) {
   return (
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-28 md:px-8 md:pt-32" aria-busy="true">
       <div className="mb-8 h-[76px] md:h-[86px]" />
+      {/* 검색칸 자리 */}
+      <div className="mb-4 h-10 rounded-[10px] border bg-card md:max-w-2xl" />
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:max-w-2xl">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="h-10 rounded-[10px] border bg-card" />
