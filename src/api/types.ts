@@ -154,6 +154,8 @@ export interface PostListParams {
   cityId?: number;
   categoryId?: number;
   subCategoryId?: number;
+  // 제목 · 본문 · 들른 장소 이름에서 찾기
+  keyword?: string;
   page?: number;
   size?: number;
   // 여러 개면 앞에서부터 정렬 기준 (sort=likeCount,desc&sort=id,desc)
