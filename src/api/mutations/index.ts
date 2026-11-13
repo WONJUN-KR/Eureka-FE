@@ -31,12 +31,13 @@ export function useSignup() {
   });
 }
 
-// 글이 바뀌면 글 목록 · 상세 + 사람별 글 목록 · 프로필(글 수)을 다시 받음
+// 글이 바뀌면 글 목록 · 상세 + 사람별 글 목록 · 프로필(글 수) · 추천한 글을 다시 받음
 const refreshPosts = (qc: ReturnType<typeof useQueryClient>, key: readonly unknown[]) =>
   Promise.all([
     qc.invalidateQueries({ queryKey: key }),
     qc.invalidateQueries({ queryKey: queryKeys.user.postsAll }),
     qc.invalidateQueries({ queryKey: queryKeys.user.profileAll }),
+    qc.invalidateQueries({ queryKey: queryKeys.user.myLikes() }),
   ]);
 
 export function useCreatePost() {
@@ -88,6 +89,10 @@ export function useToggleLike(postId: number) {
     onSuccess: (data) => {
       qc.setQueryData(["posts", "like", postId], data);
       qc.invalidateQueries({ queryKey: queryKeys.posts.detail(postId) });
+      // 마이페이지 '추천한 글' · 받은 좋아요 수 · 사람별 글 카드의 좋아요 수
+      qc.invalidateQueries({ queryKey: queryKeys.user.myLikes() });
+      qc.invalidateQueries({ queryKey: queryKeys.user.profileAll });
+      qc.invalidateQueries({ queryKey: queryKeys.user.postsAll });
     },
   });
 }
