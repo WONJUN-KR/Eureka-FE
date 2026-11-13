@@ -12,14 +12,15 @@ import { getErrorMessage } from "@/api/request";
 import type { ImageResponse, PlaceResponse } from "@/api/types";
 import RouteMap from "@/components/map/RouteMap";
 import PostCard from "@/components/PostCard";
-import ReportButton from "@/components/ReportDialog";
+import ReportButton from "@/components/ReportButton";
 import { buttonClass } from "@/components/ui/field";
 import SectionHead from "@/components/ui/SectionHead";
+import { useDialogFocus } from "@/hooks/useDialogFocus";
 import { cn, formatDate, isOptimizable } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 // 글 상세: 제목 · 사진 · 본문 · 들른 곳(순서 · 시간 · 종류 · 메모 · 사진) · 오른쪽 경로 지도 · 같은 도시 글
-// 원본 read.jsp 는 목록 위에 뜨는 창이었는데 주소로 공유할 수 있게 페이지로 둠. '신고'는 BE 기능이 없어서 뺌
+// 원본 read.jsp 는 목록 위에 뜨는 창이었는데 주소로 공유할 수 있게 페이지로 둠. 신고는 로그인한 사람이 남의 글에만
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const postId = Number(id);
@@ -457,37 +458,23 @@ function Viewer({
   const n = images.length;
   const dialog = useRef<HTMLDivElement>(null);
   const closeBtn = useRef<HTMLButtonElement>(null);
-  // 열 때 닫기 버튼으로 포커스, 닫으면 누른 사진 버튼으로 되돌림
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    closeBtn.current?.focus();
-    return () => prev?.focus();
-  }, []);
+  // 열 때 닫기 버튼으로 포커스, Tab 은 뷰어 버튼 안에서만, 닫으면 누른 사진 버튼으로
+  useDialogFocus(dialog, {
+    onClose,
+    initial: () => closeBtn.current,
+    edges: () => {
+      const items = [...(dialog.current?.querySelectorAll<HTMLElement>("button") ?? [])];
+      return [items[0], items[items.length - 1]];
+    },
+  });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // 열려 있는 동안 Tab 은 뷰어 버튼 안에서만 돎
-      if (e.key === "Tab" && dialog.current) {
-        const items = [...dialog.current.querySelectorAll<HTMLElement>("button")];
-        const first = items[0];
-        const last = items[items.length - 1];
-        if (!dialog.current.contains(document.activeElement)) {
-          e.preventDefault();
-          first?.focus();
-        } else if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
-        }
-      }
-      if (e.key === "Escape") onClose();
       if (e.key === "ArrowLeft") onChange((index - 1 + n) % n);
       if (e.key === "ArrowRight") onChange((index + 1) % n);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [index, n, onChange, onClose]);
+  }, [index, n, onChange]);
 
   const img = images[index];
   return (
