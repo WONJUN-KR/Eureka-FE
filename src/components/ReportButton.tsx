@@ -87,7 +87,9 @@ function ReportDialog({
       const buttons = [
         ...(dialog.current?.querySelectorAll<HTMLButtonElement>("button:not(:disabled)") ?? []),
       ];
-      return [radios().find((r) => r.checked) ?? radios()[0], buttons[buttons.length - 1]];
+      const first = radios().find((r) => r.checked) ?? radios()[0];
+      // 보내는 중엔 두 버튼이 잠김 -> 라디오가 처음이자 끝 (포커스가 창 밖으로 안 나가게)
+      return [first, buttons[buttons.length - 1] ?? first];
     },
   });
 
@@ -101,7 +103,7 @@ function ReportDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="report-title"
-        className="w-full max-w-sm rounded-2xl border bg-card p-6"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto rounded-2xl border bg-card p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="report-title" className="mb-1 text-lg font-medium">
