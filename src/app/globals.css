@@ -57,3 +57,27 @@
       sans-serif;
   }
 }
+
+/* 카카오맵 위 장소 번호 핀 (RouteMap) - 고른 장소는 주황 */
+.eureka-pin {
+  display: flex;
+  height: 26px;
+  width: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1.5px solid hsl(var(--ink-2));
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font:
+    500 12px/1 "Pretendard Variable",
+    Pretendard,
+    sans-serif;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+}
+.eureka-pin.is-active {
+  border-color: hsl(var(--trail));
+  background: hsl(var(--trail));
+  color: hsl(var(--card));
+}
