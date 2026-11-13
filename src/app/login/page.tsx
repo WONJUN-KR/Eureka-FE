@@ -201,7 +201,34 @@ function LoginAndJoin() {
           }}
         />
       )}
+      <KakaoButton />
     </div>
+  );
+}
+
+// 카카오로 시작하기 - 처음이면 BE 가 자동 가입. 브라우저째 BE 로 이동해야 카카오 로그인 화면으로 넘어감
+// 버튼 색 · 기호는 카카오 로그인 디자인 가이드(노란 바탕 #FEE500, 검은 말풍선)
+function KakaoButton() {
+  return (
+    <>
+      <div className="my-8 flex items-center gap-3 text-sm text-muted-foreground">
+        <span className="h-px flex-1 bg-border" aria-hidden />
+        또는
+        <span className="h-px flex-1 bg-border" aria-hidden />
+      </div>
+      <a
+        href={`${process.env.NEXT_PUBLIC_API_BASE_URL ?? ""}/api/auth/kakao`}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-[#FEE500] text-[15px] font-medium text-black/85 transition-opacity hover:opacity-90"
+      >
+        <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M12 3C6.48 3 2 6.48 2 10.78c0 2.78 1.86 5.22 4.66 6.6l-.95 3.48c-.08.3.26.54.52.37l4.15-2.74c.53.06 1.07.1 1.62.1 5.52 0 10-3.48 10-7.81S17.52 3 12 3z"
+          />
+        </svg>
+        카카오로 시작하기
+      </a>
+    </>
   );
 }
 
