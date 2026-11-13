@@ -199,3 +199,13 @@ export interface ImageResponse {
   url: string;
   seq: number;
 }
+
+// 신고 사유 - BE ReportReason 이름 그대로. 같은 글은 한 번만, 3건 쌓이면 글이 숨김 처리됨
+export const REPORT_REASONS = [
+  { value: "FALSE_INFO", label: "허위 정보" },
+  { value: "INAPPROPRIATE", label: "부적절한 내용" },
+  { value: "SPAM", label: "스팸 · 광고" },
+  { value: "COPYRIGHT", label: "저작권 침해" },
+  { value: "ETC", label: "기타" },
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number]["value"];
