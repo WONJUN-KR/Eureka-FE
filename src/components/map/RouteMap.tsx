@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export type RouteStop = LatLng & { name: string };
 
 const TRAIL = "#c9532a";
+// 부모가 크기를 안 주면 쓰는 기본 크기(4:3) - 높이 0 인 컨테이너엔 카카오맵이 안 그려짐
+const BOX = "aspect-[4/3] w-full";
 
 export default function RouteMap({
   stops,
@@ -34,7 +36,8 @@ export default function RouteMap({
   }, []);
 
   if (stops.length === 0) return null;
-  if (kakao === undefined) return <div className={cn("animate-pulse bg-secondary", className)} />;
+  if (kakao === undefined)
+    return <div className={cn(BOX, "animate-pulse bg-secondary", className)} />;
   if (kakao === null)
     return <SketchRoute stops={stops} active={active} onSelect={onSelect} className={className} />;
   return (
@@ -66,6 +69,11 @@ function KakaoRoute({
   const mapRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pins = useRef<any[]>([]);
+  // 핀은 장소가 바뀔 때만 다시 만들고, 클릭은 늘 최신 onSelect 를 부름
+  const selectRef = useRef(onSelect);
+  useEffect(() => {
+    selectRef.current = onSelect;
+  });
 
   // 지도 · 경로 · 핀은 장소가 바뀔 때만 다시 그림
   useEffect(() => {
@@ -93,7 +101,7 @@ function KakaoRoute({
       pin.textContent = String(i + 1);
       pin.setAttribute("aria-label", `${i + 1}. ${s.name}`);
       pin.className = "eureka-pin";
-      pin.onclick = () => onSelect?.(i);
+      pin.onclick = () => selectRef.current?.(i);
       return new maps.CustomOverlay({
         map,
         position: path[i],
@@ -108,8 +116,6 @@ function KakaoRoute({
       mapRef.current = null;
       node.replaceChildren();
     };
-    // onSelect 는 부모가 매 렌더 새로 만들어서 빼둠 - 핀 클릭은 생성 시점 함수로 충분
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kakao, stops]);
 
   // 고른 장소는 핀을 주황으로 바꾸고 지도 가운데로
@@ -122,7 +128,7 @@ function KakaoRoute({
     }
   }, [active, kakao, stops]);
 
-  return <div ref={el} className={cn("overflow-hidden", className)} />;
+  return <div ref={el} className={cn(BOX, "overflow-hidden", className)} />;
 }
 
 // 키가 없을 때: 위경도를 화면 좌표로 바로 옮긴 약도 (경도는 위도에 맞춰 줄임)
@@ -154,8 +160,14 @@ function SketchRoute({
   ]);
 
   return (
-    <div className={cn("bg-[#efe9dc]", className)}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="size-full" role="img" aria-label="들른 장소 약도">
+    <div className={cn(BOX, "bg-[#efe9dc]", className)}>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="size-full"
+        // 핀을 고를 수 있으면 버튼 묶음(group), 보기만 하면 그림(img)
+        role={onSelect ? "group" : "img"}
+        aria-label="들른 장소 약도"
+      >
         <defs>
           <pattern id="sketch-grid" width="24" height="24" patternUnits="userSpaceOnUse">
             <path d="M24 0H0V24" fill="none" stroke="#1f2722" strokeOpacity="0.06" />
