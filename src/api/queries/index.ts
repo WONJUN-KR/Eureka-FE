@@ -22,7 +22,12 @@ import type {
 export function usePosts(params: PostListParams) {
   return useQuery({
     queryKey: queryKeys.posts.list(params as Record<string, unknown>),
-    queryFn: () => get<Page<PostResponse>>(ENDPOINTS.POSTS.LIST, { params }),
+    queryFn: () =>
+      get<Page<PostResponse>>(ENDPOINTS.POSTS.LIST, {
+        params,
+        // 배열은 sort=a&sort=b 로 (Spring 이 받는 모양)
+        paramsSerializer: { indexes: null },
+      }),
   });
 }
 
