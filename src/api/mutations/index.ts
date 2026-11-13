@@ -30,11 +30,19 @@ export function useSignup() {
   });
 }
 
+// 글이 바뀌면 글 목록 · 상세 + 사람별 글 목록 · 프로필(글 수)을 다시 받음
+const refreshPosts = (qc: ReturnType<typeof useQueryClient>, key: readonly unknown[]) =>
+  Promise.all([
+    qc.invalidateQueries({ queryKey: key }),
+    qc.invalidateQueries({ queryKey: queryKeys.user.postsAll }),
+    qc.invalidateQueries({ queryKey: queryKeys.user.profileAll }),
+  ]);
+
 export function useCreatePost() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: CreatePostRequest) => post<PostDetailResponse>(ENDPOINTS.POSTS.CREATE, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.posts.all }),
+    onSuccess: () => refreshPosts(qc, queryKeys.posts.all),
   });
 }
 
@@ -43,7 +51,7 @@ export function useUpdatePost(id: number) {
   return useMutation({
     mutationFn: (body: UpdatePostRequest) =>
       patch<PostDetailResponse>(ENDPOINTS.POSTS.UPDATE(id), body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.posts.all }),
+    onSuccess: () => refreshPosts(qc, queryKeys.posts.all),
   });
 }
 
@@ -52,7 +60,7 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: (id: number) => del<null>(ENDPOINTS.POSTS.DELETE(id)),
     // 목록만 갱신. 지운 글의 상세는 화면에서 조회를 끄고 떠남(invalidate·remove 하면 떠나기 전에 다시 불러서 404)
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["posts", "list"] }),
+    onSuccess: () => refreshPosts(qc, ["posts", "list"]),
   });
 }
 

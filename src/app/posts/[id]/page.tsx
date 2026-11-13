@@ -105,7 +105,10 @@ export default function PostDetailPage() {
         {post.title}
       </h1>
       <p className="flex flex-wrap items-center gap-2 text-[15px] tabular-nums text-muted-foreground">
-        <span className="inline-flex items-center gap-2.5 font-medium text-foreground">
+        <Link
+          href={`/users/${post.author.id}`}
+          className="inline-flex items-center gap-2.5 font-medium text-foreground hover:underline hover:underline-offset-4"
+        >
           <span
             aria-hidden
             className="grid size-8 place-items-center rounded-full bg-[#d9d0bf] text-[13px] text-ink-2"
@@ -113,7 +116,7 @@ export default function PostDetailPage() {
             {post.author.nickname.slice(0, 1)}
           </span>
           {post.author.nickname}
-        </span>
+        </Link>
         <span aria-hidden>·</span>
         <span>{formatDate(post.createdAt)}</span>
         <span aria-hidden>·</span>
@@ -236,6 +239,12 @@ export default function PostDetailPage() {
                 onSelect={focusStop}
                 className="aspect-[4/3] w-full rounded-xl"
               />
+              <Link
+                href={`/users/${post.author.id}`}
+                className="mt-4 block text-sm text-ink-2 underline-offset-4 hover:text-foreground hover:underline"
+              >
+                {post.author.nickname}의 다른 여행 보기 →
+              </Link>
               <ol className="mt-4 text-sm">
                 {places.map((pl, i) => (
                   <li key={pl.id}>
