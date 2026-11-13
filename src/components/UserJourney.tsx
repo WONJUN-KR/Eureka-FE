@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useMyLikes, useMyPosts, useUserPosts, useUserProfile } from "@/api/queries";
 import { getErrorMessage } from "@/api/request";
-import { pageInfo } from "@/api/types";
+import { pageInfo, type Page, type PostResponse } from "@/api/types";
 import KoreaMap, { project } from "@/components/map/KoreaMap";
 import PostCard, { PostCardSkeleton } from "@/components/PostCard";
 import { buttonClass } from "@/components/ui/field";
@@ -18,16 +18,24 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
   // 내 페이지는 공개 전 글까지, 다른 사람 페이지는 공개 글만
   const publicPosts = useUserPosts(userId, !mine);
   const myPosts = useMyPosts(mine);
-  const {
-    data: posts,
-    isLoading,
-    isError: postsError,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = mine ? myPosts : publicPosts;
+  const ownPosts = mine ? myPosts : publicPosts;
+  const posts = ownPosts.data;
   // 마이페이지만: 작성글 | 추천한 글(내가 좋아요한 글) - 추천한 글은 탭을 열 때 받아옴
-  const [tab, setTab] = useState<"posts" | "likes">("posts");
+  // 고른 탭은 주소(?tab=likes)에 둬서 글을 보고 뒤로 와도 그 탭 그대로 - 마이페이지는 로그인 확인 뒤에만 그려서 첫 렌더부터 주소를 읽어도 됨
+  const [tab, setTabState] = useState<"posts" | "likes">(() =>
+    mine &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("tab") === "likes"
+      ? "likes"
+      : "posts"
+  );
+  const setTab = (t: "posts" | "likes") => {
+    setTabState(t);
+    const url = new URL(window.location.href);
+    if (t === "likes") url.searchParams.set("tab", "likes");
+    else url.searchParams.delete("tab");
+    window.history.replaceState(window.history.state, "", url);
+  };
   const likes = useMyLikes(mine && tab === "likes");
   const [hover, setHover] = useState<number>();
   const [copied, setCopied] = useState(false);
@@ -37,23 +45,16 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
   if (isError)
     return <p className="py-16 text-center text-destructive">{getErrorMessage(error)}</p>;
 
-  const list = posts?.pages.flatMap((pg) => pg.content) ?? [];
+  const list = flat(posts);
   const trips = list.filter((p) => (p.places ?? []).length > 0);
   const placeCount = trips.reduce((n, p) => n + p.places!.length, 0);
   const cityCount = new Set(list.map((p) => p.cityName)).size;
-  const total = posts?.pages[0] ? pageInfo(posts.pages[0]).totalElements : 0;
 
   // 아래 목록: 작성글이면 위 글 목록 그대로, 추천한 글이면 좋아요한 글
   const showLikes = mine && tab === "likes";
-  const shown = showLikes
-    ? likes
-    : { isLoading, isError: postsError, hasNextPage, fetchNextPage, isFetchingNextPage };
-  const shownList = showLikes ? (likes.data?.pages.flatMap((pg) => pg.content) ?? []) : list;
-  const shownTotal = showLikes
-    ? likes.data?.pages[0]
-      ? pageInfo(likes.data.pages[0]).totalElements
-      : 0
-    : total;
+  const shown = showLikes ? likes : ownPosts;
+  const shownList = showLikes ? flat(likes.data) : list;
+  const shownTotal = totalOf(shown.data);
 
   const share = async () => {
     const url = `${window.location.origin}/users/${userId}`;
@@ -133,14 +134,14 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
             </KoreaMap>
             <p className="mt-3 text-sm text-muted-foreground">
               주황 점이 여행의 첫 장소 · 글에 마우스를 올리면 그 여행만 진하게
-              {total > list.length && ` · 최근 글 ${list.length}개 기준`}
+              {totalOf(posts) > list.length && ` · 최근 글 ${list.length}개 기준`}
             </p>
           </div>
         </div>
 
         <section aria-label={showLikes ? "추천한 글" : "쓴 글"}>
           {mine && (
-            <div role="tablist" aria-label="글 목록" className="mb-8 flex gap-6 border-b">
+            <div role="group" aria-label="글 목록" className="mb-8 flex gap-6 border-b">
               {(
                 [
                   ["posts", "작성글"],
@@ -150,8 +151,7 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
                 <button
                   key={key}
                   type="button"
-                  role="tab"
-                  aria-selected={tab === key}
+                  aria-pressed={tab === key}
                   onClick={() => setTab(key)}
                   className={cn(
                     "-mb-px border-b-2 pb-3 text-[15px] transition-colors",
@@ -209,3 +209,8 @@ export default function UserJourney({ userId, mine = false }: { userId: number; 
     </>
   );
 }
+
+// 이어 받은 페이지들을 한 줄로 · 전체 개수
+type Pages = { pages: Page<PostResponse>[] } | undefined;
+const flat = (d: Pages) => d?.pages.flatMap((pg) => pg.content) ?? [];
+const totalOf = (d: Pages) => (d?.pages[0] ? pageInfo(d.pages[0]).totalElements : 0);
