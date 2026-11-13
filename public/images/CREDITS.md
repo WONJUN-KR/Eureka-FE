@@ -5,9 +5,7 @@
 
 | 파일                                           | 사진                                                                              |
 | ---------------------------------------------- | --------------------------------------------------------------------------------- |
-| bannerImages/banner1.jpg                       | https://unsplash.com/photos/oMsXE4kIKC8                                           |
 | bannerImages/banner2.jpg                       | https://unsplash.com/photos/JjnCtpzFXo4                                           |
-| bannerImages/banner3.jpg                       | https://unsplash.com/photos/Pa-DHzsGRDU                                           |
 | recommendImages/seoul.jpg · seoul2.jpg         | https://unsplash.com/photos/RbaGeW_LbGs · https://unsplash.com/photos/Via0Hy2rYIc |
 | recommendImages/gangneung.jpg · gangneung2.jpg | https://unsplash.com/photos/4wbQ_Tyfoa4 · https://unsplash.com/photos/Pa-DHzsGRDU |
 | recommendImages/sokcho.jpg · sokcho2.jpg       | https://unsplash.com/photos/qfjIZ6FFW0E · https://unsplash.com/photos/be58bEgXHmA |
@@ -21,3 +19,4 @@
 
 로고(`headerImages/logo.png` · `blackLogo.png` · `footerImages/logo.png`)는 2021 원본 팀 프로젝트에서 만든 것입니다.
 아이콘은 [lucide](https://lucide.dev)(ISC License)를 씁니다.
+한국 지도 모양(`src/data/korea-map.json`)은 [@svg-maps/south-korea](https://www.npmjs.com/package/@svg-maps/south-korea) 2.0.0 (VictorCazanave, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/))에서 경로만 가져와 시·도 id 와 위경도 변환값을 붙였습니다.
