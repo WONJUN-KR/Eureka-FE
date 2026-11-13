@@ -2,7 +2,6 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
-  darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -44,19 +43,13 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        eureka: {
-          50: "#f0fdf4",
-          100: "#dcfce7",
-          200: "#bbf7d0",
-          300: "#86efac",
-          400: "#4ade80",
-          500: "#22c55e",
-          600: "#16a34a",
-          700: "#15803d",
-          800: "#166534",
-          900: "#14532d",
-          950: "#052e16",
-        },
+        // 보조 글자색(본문 설명) · 지도 경로 주황
+        "ink-2": "hsl(var(--ink-2))",
+        trail: "hsl(var(--trail))",
+      },
+      fontFamily: {
+        // 제목용 명조 (layout.tsx 의 next/font 변수)
+        serif: ["var(--font-serif)", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
