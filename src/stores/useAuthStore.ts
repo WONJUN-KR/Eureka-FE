@@ -69,6 +69,10 @@ export const useAuthStore = create<AuthStore>()(
 
 // localStorage 가 막힌 환경(개인 정보 보호 모드 등)에선 persist 가 복원을 시작하지 않아 위 콜백도 안 옴
 // (저장소가 없으면 persist 기능 자체가 빠진 store 가 만들어짐)
-if (typeof window !== "undefined" && !useAuthStore.persist) {
+// 저장값이 깨져 복원이 store 생성 중에 실패하면 위 콜백이 켠 isHydrated 가 시작 상태로 덮임 -> hasHydrated() 가 false 라 여기서 다시 켬
+if (
+  typeof window !== "undefined" &&
+  (!useAuthStore.persist || !useAuthStore.persist.hasHydrated())
+) {
   useAuthStore.setState({ isHydrated: true });
 }
