@@ -3,6 +3,10 @@ export const ENDPOINTS = {
     SIGNUP: "/api/auth/signup",
     LOGIN: "/api/auth/login",
     REISSUE: "/api/auth/reissue",
+    // 카카오 로그인 시작(BE 가 카카오로 302) - fetch 말고 브라우저 이동
+    KAKAO: "/api/auth/kakao",
+    // 콜백의 1회용 code + 시작할 때 만든 nonce -> 토큰
+    KAKAO_EXCHANGE: "/api/auth/kakao/exchange",
   },
   USERS: {
     ME: "/api/users/me",
