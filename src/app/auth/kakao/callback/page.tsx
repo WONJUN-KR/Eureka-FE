@@ -36,8 +36,13 @@ export default function KakaoCallbackPage() {
     }
     exchangeKakaoCode(code)
       .then((t) => {
-        // 저장소가 막혀 있으면(사파리 개인 정보 보호 모드 등) login 에서 예외 -> 실패 안내
-        login(t.accessToken, t.refreshToken);
+        try {
+          login(t.accessToken, t.refreshToken);
+        } catch (e) {
+          // 저장소가 막혀 있으면(사파리 개인 정보 보호 모드 등) login 에서 예외 -> 실패 안내
+          // 단 로그인 상태(메모리)는 바뀌고 auth-storage 저장만 실패한 경우는 이번 접속 동안 로그인된 것 -> 성공으로 넘김
+          if (!useAuthStore.getState().isAuthenticated) throw e;
+        }
         router.replace("/");
       })
       .catch(() => setFailed(true));
