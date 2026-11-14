@@ -74,5 +74,11 @@ if (
   typeof window !== "undefined" &&
   (!useAuthStore.persist || !useAuthStore.persist.hasHydrated())
 ) {
-  useAuthStore.setState({ isHydrated: true });
+  // setState 는 저장소에도 바로 저장함 - 저장이 실패해도(용량 초과 등) 메모리 상태는 이미 바뀌어 있으니 예외만 삼킴
+  // (여기서 예외가 나면 이 파일을 쓰는 화면 전체가 안 뜸)
+  try {
+    useAuthStore.setState({ isHydrated: true });
+  } catch {
+    // 저장 실패는 무시 - 로그인 상태는 이번 로드 동안 메모리에만 있음
+  }
 }
