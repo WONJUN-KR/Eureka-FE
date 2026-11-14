@@ -40,8 +40,10 @@ export default function KakaoCallbackPage() {
           login(t.accessToken, t.refreshToken);
         } catch (e) {
           // 저장소가 막혀 있으면(사파리 개인 정보 보호 모드 등) login 에서 예외 -> 실패 안내
-          // 단 로그인 상태(메모리)는 바뀌고 auth-storage 저장만 실패한 경우는 이번 접속 동안 로그인된 것 -> 성공으로 넘김
-          if (!useAuthStore.getState().isAuthenticated) throw e;
+          // 단 이번에 받은 토큰이 메모리에 들어가고 auth-storage 저장만 실패한 경우는 이번 접속 동안 로그인된 것 -> 성공으로 넘김
+          // (이미 다른 계정으로 로그인돼 있던 경우를 성공으로 보지 않게 토큰까지 비교)
+          const now = useAuthStore.getState();
+          if (now.accessToken !== t.accessToken || now.refreshToken !== t.refreshToken) throw e;
         }
         router.replace("/");
       })
